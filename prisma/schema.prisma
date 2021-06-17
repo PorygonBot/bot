@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model League {
+	name      String
+  	guildId   String
+  	channelId String @id
+  	resultsChannelId String?
+  	dlId String?
+  	sheetId String? 
+  	system String @default("")
+}
+
+model Rules {
+	channelId String @id
+	recoil String @default("d")
+	suicide String @default("d")
+	abilityitem String @default("p")
+	selfteam String @default("n")
+	db String @default("p")
+	spoiler Boolean @default(true)
+	ping String @default("")
+	forfeit String @default("n")
+	format String @default("default")
+	quirks Boolean @default(true)
+	stopTalking Boolean @default(false)
+	tb Boolean @default(true)
+	combine Boolean @default(false)
+	redirect String @default("")
+	timeOfPing String @default("first")
+}
