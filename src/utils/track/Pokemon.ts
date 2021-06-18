@@ -50,14 +50,14 @@ class Pokemon {
 	}
 
 	//When the pokemon has killed another pokemon in battle
-	killed(deathJson: { [key: string]: string }) {
+	killed(deathJson: { killer: string; isPassive: Boolean }) {
 		if (deathJson.killer) {
 			if (deathJson.isPassive) this.currentPassiveKills++;
 			else this.currentDirectKills++;
 		}
 	}
 
-	unkilled(isPassive: Boolean) {
+	unkilled(isPassive?: Boolean) {
 		if (isPassive) this.currentPassiveKills--;
 		else this.currentDirectKills--;
 	}
@@ -65,7 +65,7 @@ class Pokemon {
 	//Run when the pokemon has died in battle
 	died(causeOfDeath: string, killer: string, isPassive: Boolean) {
 		this.causeOfDeath = causeOfDeath;
-		this.killer = killer ? killer : "";
+		this.killer = killer ? killer : '';
 		this.isDead = true;
 
 		return {
