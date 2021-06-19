@@ -10,31 +10,57 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum KillType {
+	D
+	P
+	N
+}
+
+enum PingTime {
+	SENT
+	FIRST
+}
+
+enum StatsFormat {
+	D
+	CSV
+	SPACE
+}
+
+enum System {
+	D
+	C
+	DM
+	S
+	DL
+}
+
 model League {
-	name      String
-  	guildId   String
-  	channelId String @id
-  	resultsChannelId String?
-  	dlId String?
-  	sheetId String? 
-  	system String @default("")
+	name              String
+  	guildId           String
+  	channelId         String      @id
+  	resultsChannelId  String?
+  	dlId              String?
+  	sheetId           String? 
+  	system            System      @default(D)
 }
 
 model Rules {
-	channelId String @id
-	recoil String @default("d")
-	suicide String @default("d")
-	abilityitem String @default("p")
-	selfteam String @default("n")
-	db String @default("p")
-	spoiler Boolean @default(true)
-	ping String @default("")
-	forfeit String @default("n")
-	format String @default("default")
-	quirks Boolean @default(true)
-	stopTalking Boolean @default(false)
-	tb Boolean @default(true)
-	combine Boolean @default(false)
-	redirect String @default("")
-	timeOfPing String @default("first")
+	channelId         String      @id
+	leagueName        String 
+	recoil            KillType    @default(D)
+	suicide           KillType    @default(D)
+	abilityitem       KillType    @default(P)
+	selfteam          KillType    @default(N)
+	db                KillType    @default(P)
+	spoiler           Boolean     @default(true)
+	ping              String      @default("")
+	forfeit           KillType    @default(N)
+	format            StatsFormat @default(D)
+	quirks            Boolean     @default(true)
+	stopTalking       Boolean     @default(false)
+	tb                Boolean     @default(true)
+	combine           Boolean     @default(false)
+	redirect          String      @default("")
+	timeOfPing        PingTime    @default(FIRST)
 }

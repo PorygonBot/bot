@@ -2,9 +2,12 @@
   "name": "bot-ts",
   "version": "1.0.0",
   "description": "Porygon in Typescript",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "migrate": "npx prisma migrate dev --name init",
+    "build": "tsc --build",
+    "run": "node .",
+    "test": "node dist/tester.js"
   },
   "repository": {
     "type": "git",

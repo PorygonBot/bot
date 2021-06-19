@@ -1,5 +1,5 @@
 import sockets from './sockets';
 import client from './client';
-import prisma from './prisma';
+import Prisma from './prisma';
 
-export {sockets, client, prisma}
+export {sockets, client, Prisma}

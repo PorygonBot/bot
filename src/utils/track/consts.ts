@@ -273,6 +273,6 @@ const consts = {
 	hazardMoves,
 	misnomers,
 	quirkyMessages,
-}
+};
 
 export default consts;

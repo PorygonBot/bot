@@ -3,9 +3,6 @@ import Pokemon from './Pokemon';
 import funcs from './funcs';
 import consts from './consts';
 
-//Setting up utils
-const utils = { funcs, consts };
-
 function track(line: string, parts: string[], rules: { [key: string]: string }, battle: Battle, dataArr: string[]) {
 	//At the beginning of every non-randoms match, a list of Pokemon show up.
 	//This code is to get all that
@@ -787,6 +784,8 @@ function track(line: string, parts: string[], rules: { [key: string]: string }, 
 
 		dataArr.splice(dataArr.length - 1, 1);
 	}
+
+	return [battle, dataArr];
 }
 
-export default track;
+export default { Battle, Pokemon, funcs, consts, track };
