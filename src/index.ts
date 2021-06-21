@@ -1,8 +1,8 @@
 // Importing required modules
 import * as dotenv from 'dotenv';
 import axios from 'axios';
-import { Message, WSEventType } from 'discord.js';
-import { client, Prisma, sockets } from './utils';
+import { Message } from 'discord.js';
+import { client, Prisma, ReplayTracker } from './utils';
 // Setting things up
 dotenv.config();
 
@@ -48,6 +48,40 @@ dotenv.config();
 client.on('ready', () => {
 	console.log(`${client.user!.username} is online!`);
 	client.user!.setActivity('f!hug me plz. I need it.');
+});
+
+//When a message is sent at any time
+client.on('message', async (message: Message) => {
+	const channel = message.channel;
+	const msgStr = message.content;
+	const prefix = 'porygon, use ';
+
+	//If it's a DM, analyze the replay
+	if (channel.type === 'dm') {
+		if (msgStr.includes('replay.pokemonshowdown.com') && message.author.id !== client.user!.id) {
+			const urlRegex = /(https?:\/\/[^ ]*)/;
+			const links = msgStr.match(urlRegex);
+			let link = '';
+			if (links) link = links[0];
+
+			let response = await axios
+				.get(link + '.log', {
+					headers: { 'User-Agent': 'PorygonTheBot' },
+				})
+				.catch((e) => console.error(e));
+			let data = response?.data;
+
+			//Getting the rules
+			let rules = await Prisma.getRules(channel.id);
+
+			//Analyzing the replay
+			let replayer = new ReplayTracker(link, message, rules);
+			const matchJson = await replayer.track(data);
+
+			await channel.send(JSON.stringify(matchJson));
+			console.log(`${link} has been analyzed!`);
+		}
+	}
 });
 
 // Log the client in.

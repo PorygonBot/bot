@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { Rules } from '../types';
 
 const prisma = new PrismaClient();
 
@@ -75,11 +76,42 @@ class Prisma {
 	}
 
 	static async getRules(channelId: string) {
-		const rules = await prisma.rules.findUnique({
+		let rules = {
+			channelId: channelId,
+			leagueName: 'Default',
+			recoil: 'D',
+			suicide: 'D',
+			abilityitem: 'P',
+			selfteam: 'N',
+			db: 'P',
+			spoiler: true,
+			ping: '',
+			forfeit: 'N',
+			format: '',
+			quirks: true,
+			timeOfPing: 'First',
+			stopTalking: false,
+			tb: true,
+			combine: false,
+			redirect: '',
+		} as Rules;
+
+		const numLeagues = await prisma.rules.count({
 			where: {
 				channelId: channelId,
 			},
 		});
+
+		if (numLeagues > 1)
+			rules = (await prisma.rules
+				.findUnique({
+					where: {
+						channelId: channelId,
+					},
+				})
+				.catch((e: Error) => {
+					console.error(e);
+				})) as Rules;
 
 		return rules;
 	}
