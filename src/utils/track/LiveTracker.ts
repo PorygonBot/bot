@@ -20,111 +20,87 @@ class ReplayTracker {
 		this.websocket = websocket; //Should already have been opened in /utils/track/sockets.ts
 	}
 
-	async track(data: string) {
-		let dataArr = [];
+	async track(line: string, dataArr: string[]) {
+		//console.log(JSON.stringify(this.battle));
 
 		try {
-			//Separates the data into lines so it's easy to parse
-			let realdata = data.split('\n');
+			//console.log(line);
 
-			for (const line of realdata) {
-				//console.log(line);
-				dataArr.push(line);
+			//Separates the line into parts, separated by `|`
+			const parts = line?.split('|').slice(1); //The substring is because all lines start with | so the first element is always blank
 
-				//Separates the line into parts, separated by `|`
-				const parts = line.split('|').slice(1); //The substring is because all lines start with | so the first element is always blank
+			//Checks first and foremost if the battle even exists
+			if (line.startsWith(`|noinit|`)) {
+				this.websocket.send(`${this.battlelink}|/leave`);
+				Battle.decrementBattles(this.battlelink);
+				console.log(`Left ${this.battlelink}.`);
+				if (line.includes('nonexistent|')) {
+					return {
+						error: `:x: Battle ${this.battlelink} is invalid. The battleroom is either closed or non-existent. I have left the battle.`,
+					};
+				} else if (line.includes('joinfailed')) {
+					return {
+						error: `:x: Battle ${this.battlelink} is closed to spectators. I have left the battle. Please start a new battle with spectators allowed if you want me to track it.`,
+					};
+				} else if (line.includes('rename')) {
+					return {
+						error: `:x: Battle ${this.battlelink} has become private. I have left the battle. Please run \`/inviteonly off\` in the battle chat and re-send the link here.`,
+					};
+				}
+			}
 
-				//Checks first and foremost if the battle even exists
-				if (line.startsWith(`|noinit|`)) {
-					this.websocket.send(`${this.battlelink}|/leave`);
+			//At the beginning of every match, the title of a match contains the player's names.
+			//As such, in order to get and verify the player's names in the database, this is the most effective.
+			else if (line.startsWith(`|title|`)) {
+				let players = parts[1].split(' vs. ');
+				console.log(`${this.battlelink}: ${players}`);
+
+				//Initializes the battle as an object
+				this.battle = new Battle(this.battlelink, players[0], players[1]);
+			}
+
+			//Checks for Showdown-based commands
+			else if (line.startsWith('|c|☆')) {
+				if (parts[2] === 'porygon, use leave') {
+					this.websocket.send(`${this.battlelink}|Ok. Bye!`);
 					Battle.decrementBattles(this.battlelink);
+
 					console.log(`Left ${this.battlelink}.`);
-					if (line.includes('nonexistent|')) {
-						return {
-							error: `:x: Battle ${this.battlelink} is invalid. The battleroom is either closed or non-existent. I have left the battle.`,
-						};
-					} else if (line.includes('joinfailed')) {
-						return {
-							error: `:x: Battle ${this.battlelink} is closed to spectators. I have left the battle. Please start a new battle with spectators allowed if you want me to track it.`,
-						};
-					} else if (line.includes('rename')) {
-						return {
-							error: `:x: Battle ${this.battlelink} has become private. I have left the battle. Please run \`/inviteonly off\` in the battle chat and re-send the link here.`,
-						};
-					}
+					return { error: `Left ${this.battlelink}.` };
 				}
+			}
 
-				//Once the server connects, the bot logs in and joins the battle
-				else if (data.startsWith('|challstr|')) {
-					//Logging in
-					const psUrl = `https://play.pokemonshowdown.com/~~${this.serverType}/action.php`;
-					const loginData = querystring.stringify({
-						act: 'login',
-						name: process.env.PS_USERNAME,
-						pass: process.env.PS_PASSWORD,
-						challstr: data.substring(10),
-					});
-					const response = await axios.post(psUrl, loginData);
-					const json = JSON.parse(response.data.substring(1));
-					const assertion = json.assertion;
-					if (assertion) {
-						this.websocket.send(`|/trn ${process.env.PS_USERNAME},0,${assertion}|`);
-					} else {
-						return;
-					}
+			//Increments the total number of turns at the beginning of every new turn
+			else if (line.startsWith(`|turn|`)) {
+				this.battle.turns++;
+				console.log(this.battlelink + ': ' + this.battle.turns);
+
+				dataArr.splice(dataArr.length - 1, 1);
+			}
+
+			//Checks if the battle is a randoms match
+			else if (line.startsWith(`|tier|`)) {
+				if (line.toLowerCase().includes('random')) {
+					return {
+						error: ":x: **Error!** This is a Randoms match. I don't work with Randoms matches.",
+					};
 				}
+			}
 
-				//At the beginning of every match, the title of a match contains the player's names.
-				//As such, in order to get and verify the player's names in the database, this is the most effective.
-				else if (line.startsWith(`|title|`)) {
-					let players = parts[1].split(' vs. ');
-					console.log(`${this.battlelink}: ${players}`);
+			//At the end of the match, when the winner is announced
+			else if (line.startsWith(`|win|`)) {
+				this.battle.winner = parts[1];
+				this.battle.loser = this.battle.winner === this.battle.p1 ? this.battle.p2 : this.battle.p1;
 
-					//Initializes the battle as an object
-					this.battle = new Battle(this.battlelink, players[0], players[1]);
-				}
+				console.log(`${this.battlelink}: ${this.battle.winner} won!`);
+				this.websocket.send(`${this.battlelink}|/savereplay`); //Requesting the replay from Showdown
+			}
 
-				//Checks for Showdown-based commands
-				else if (line.startsWith('|c|☆')) {
-					if (parts[2] === 'porygon, use leave') {
-						this.websocket.send(`${this.battlelink}|Ok. Bye!`);
-						Battle.decrementBattles(this.battlelink);
-
-						console.log(`Left ${this.battlelink}.`);
-						return { error: `Left ${this.battlelink}.` };
-					}
-				}
-
-				//Increments the total number of turns at the beginning of every new turn
-				else if (line.startsWith(`|turn|`)) {
-					this.battle.turns++;
-					console.log(this.battlelink + ': ' + this.battle.turns);
-
-					dataArr.splice(dataArr.length - 1, 1);
-				}
-
-				//Checks if the battle is a randoms match
-				else if (line.startsWith(`|tier|`)) {
-					if (line.toLowerCase().includes('random')) {
-						return {
-							error: ":x: **Error!** This is a Randoms match. I don't work with Randoms matches.",
-						};
-					}
-				}
-
-				//At the end of the match, when the winner is announced
-				else if (line.startsWith(`|win|`)) {
-					this.battle.winner = parts[1];
-					this.battle.loser = this.battle.winner === this.battle.p1 ? this.battle.p2 : this.battle.p1;
-
-					console.log(`${this.battlelink}: ${this.battle.winner} won!`);
-					this.websocket.send(`${this.battlelink}|/savereplay`); //Requesting the replay from Showdown
-				}
-
-				//Getting the replay and returning all the data
-				else if (line.startsWith('|queryresponse|savereplay')) {
+			//Getting the replay and returning all the data
+			else if (line.startsWith('|queryresponse|savereplay')) {
+				if (this.battle) {
 					//Getting the replay
-					const replayData = JSON.parse(data.substring(26));
+					const replayData = JSON.parse(line.substring(26));
 					const replayUrl = `https://play.pokemonshowdown.com/~~${this.serverType}/action.php`;
 					replayData.id = `${this.serverType === 'showdown' ? '' : `${this.serverType}-`}${replayData.id}`;
 					const replayNewData = querystring.stringify({
@@ -233,8 +209,6 @@ class ReplayTracker {
 						}
 					}
 
-					console.log(`${this.battle.winner} won!`);
-
 					//Posting to the history server
 					this.battle.history = this.battle.history.length === 0 ? ['Nothing happened'] : this.battle.history;
 					await axios.post(
@@ -301,11 +275,11 @@ class ReplayTracker {
 					this.websocket.send(`|/leave ${this.battlelink}`);
 					return returnData;
 				}
+			}
 
-				//Normal tracking
-				else {
-					track(line, parts, this.rules, this.battle, dataArr);
-				}
+			//Normal tracking
+			else {
+				track(line, parts, this.rules, this.battle, dataArr);
 			}
 
 			return { error: ':x: :x: Something went wrong. Please try again. :x: :x: ' };

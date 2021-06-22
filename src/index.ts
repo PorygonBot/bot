@@ -1,49 +1,113 @@
 // Importing required modules
 import * as dotenv from 'dotenv';
 import axios from 'axios';
+import querystring from 'querystring';
+import WebSocket from 'ws';
 import { Message } from 'discord.js';
-import { client, Prisma, ReplayTracker, LiveTracker, sockets, funcs, consts } from './utils';
-import { Battle } from './types';
+import { client, Prisma, ReplayTracker, LiveTracker, funcs, consts } from './utils';
+import { Battle, Socket } from './types';
 // Setting things up
 dotenv.config();
+const sockets: { [key: string]: Socket } = {
+	showdown: {
+		name: 'Showdown',
+		link: 'https://play.pokemonshowdown.com',
+		ip: 'sim3.psim.us:8000',
+		server: 'ws://sim3.psim.us:8000/showdown/websocket',
+		socket: new WebSocket('ws://sim3.psim.us:8000/showdown/websocket'),
+	},
+	sports: {
+		name: 'Sports',
+		link: 'http://sports.psim.us',
+		ip: '34.222.148.43:8000',
+		server: 'ws://34.222.148.43:8000/showdown/websocket',
+		socket: new WebSocket('ws://34.222.148.43:8000/showdown/websocket'),
+	},
+	automatthic: {
+		name: 'Automatthic',
+		link: 'http://automatthic.psim.us',
+		ip: '185.224.89.75:8000',
+		server: 'ws://34.222.148.43:8000/showdown/websocket',
+		socket: new WebSocket('ws://34.222.148.43:8000/showdown/websocket'),
+	},
+	dawn: {
+		name: 'Dawn',
+		link: 'http://dawn.psim.us',
+		ip: 'oppai.azure.lol:80',
+		server: 'ws://oppai.azure.lol:80/showdown/websocket',
+		socket: new WebSocket('ws://oppai.azure.lol:80/showdown/websocket'),
+	},
+	drafthub: {
+		name: 'Drafthub',
+		link: 'http://drafthub.psim.us',
+		ip: '128.199.170.203:8000',
+		server: 'ws://128.199.170.203:8000/showdown/websocket',
+		socket: new WebSocket('ws://128.199.170.203:8000/showdown/websocket'),
+	},
+	clover: {
+		name: 'Clover',
+		link: 'https://clover.weedl.es',
+		ip: 'clover.weedl.es:8000',
+		server: 'ws://clover.weedl.es:8000/showdown/websocket',
+		socket: new WebSocket('ws://clover.weedl.es:8000/showdown/websocket'),
+	},
+	radicalred: {
+		name: 'Radical Red',
+		link: 'https://play.radicalred.net',
+		ip: 'sim.radicalred.net:8000',
+		server: 'ws://sim.radicalred.net:8000/showdown/websocket',
+		socket: new WebSocket('ws://sim.radicalred.net:8000/showdown/websocket'),
+	},
+};
+let tracker: LiveTracker;
+let returnData: {
+	[key: string]: {
+		[key: string]:
+			| { [key: string]: string | { [key: string]: { [key: string]: number } | number } }
+			| string
+			| number;
+	} | string;
+};
 
-// Listening for interactions for slash commands
-// client.ws.on('INTERACTION_CREATE' as WSEventType, async (interaction) => {
-// 	const link = interaction.data.options[0].value + '.log';
-// 	const response = await axios
-// 		.get(link, {
-// 			headers: { 'User-Agent': 'PorygonTheclient' },
-// 		})
-// 		.catch((e: Error) => console.error(e));
-// 	let data;
-// 	if (response) data = response.data;
-// 	else
-// 		return client.api.interactions(interaction.id, interaction.token).callback.post({
-// 			data: {
-// 				type: 4,
-// 				data: {
-// 					content: ':x: Replay is invalid. Please try again or use a different replay.',
-// 				},
-// 			},
-// 		});
+for (let socket of Object.values(sockets)) {
+	socket.socket.on('message', async (data) => {
+		let realdata = data.toString()?.split('\n');
+		let dataArr = [];
 
-// 	//Getting the rules
-// 	//let rulesId = await utils.findRulesId(interaction.channel_id);
-// 	//let rules = await utils.getRules(rulesId);
-// 	//rules.isSlash = true;
+		for (const line of realdata) {
+			dataArr.push(line);
 
-// 	const messagePlaceholder = {
-// 		channel: {
-// 			async send(message: Message) {
-// 				return message;
-// 			},
-// 		},
-// 	};
+			//Once the server connects, the bot logs in and joins the battle
+			if (line.startsWith('|challstr|')) {
+				//Logging in
+				const psUrl = `https://play.pokemonshowdown.com/~~${socket.name.toLowerCase()}/action.php`;
+				const loginData = querystring.stringify({
+					act: 'login',
+					name: process.env.PS_USERNAME,
+					pass: process.env.PS_PASSWORD,
+					challstr: line.substring(10),
+				});
+				const response = await axios.post(psUrl, loginData);
+				const json = JSON.parse(response.data.substring(1));
+				const assertion = json.assertion;
+				if (assertion) {
+					socket.socket.send(`|/trn ${process.env.PS_USERNAME},0,${assertion}|`);
+				} else {
+					return;
+				}
+			}
 
-// 	//let replayer = new ReplayTracker(interaction.data.options[0].value, messagePlaceholder, rules, interaction);
-// 	//await replayer.track(data, client);
-// 	console.log(`${link} has been analyzed!`);
-// });
+			//Tracking as normal
+			else {
+				if (tracker && tracker.battle) returnData = await tracker.track(line, dataArr);
+			}
+		}
+
+		if (returnData && !returnData.error) {
+			console.log(returnData);
+		}
+	});
+}
 
 // When the client boots up
 client.on('ready', () => {
@@ -60,6 +124,7 @@ client.on('message', async (message: Message) => {
 	//If it's a DM, analyze the replay
 	if (channel.type === 'dm') {
 		if (msgStr.includes('replay.pokemonshowdown.com') && message.author.id !== client.user!.id) {
+			//Extracting URL
 			const urlRegex = /(https?:\/\/[^ ]*)/;
 			const links = msgStr.match(urlRegex);
 			let link = '';
@@ -109,12 +174,10 @@ client.on('message', async (message: Message) => {
 					battlelink.includes('porygonbot.xyz')
 				)
 			) {
-				console.log('hi 1');
 				let server = Object.values(sockets).filter((socket) => battlelink.startsWith(socket.link))[0];
 				if (!server) {
 					return channel.send('This link is not a valid Pokemon Showdown battle url.');
 				}
-				console.log('hi 2');
 
 				//Getting the rules
 				let rules = await Prisma.getRules(channel.id);
@@ -125,15 +188,12 @@ client.on('message', async (message: Message) => {
 				client.user!.setActivity(`${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`, {
 					type: 'WATCHING',
 				});
-				const tracker = new LiveTracker(battleId, server.name, rules, server.socket);
-				console.log('hi 3');
+				tracker = new LiveTracker(battleId, server.name, rules, server.socket);
 
 				server.socket.send(`|/join ${battleId}`);
 				if (!rules.stopTalking)
 					await message.channel.send(`Battle joined! Keeping track of stats now. ${rules.ping}`);
-				console.log('hi 4');
 
-				console.log('hi 5');
 				server.socket.send(
 					`${battleId}|${
 						rules.quirks
@@ -141,12 +201,9 @@ client.on('message', async (message: Message) => {
 							: 'Battled joined! Keeping track of stats now.'
 					}`
 				);
-				console.log('hi 6');
 
 				//Websocket tracking time!
-				console.log('hi 7');
 				server.socket.on('message', tracker.track);
-				console.log('hi 8');
 			}
 		} catch (e) {
 			console.error(e);

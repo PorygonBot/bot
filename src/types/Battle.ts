@@ -46,7 +46,7 @@ class Battle {
 		this.weather = '';
 		this.weatherInflictor = '';
 		this.turns = 0;
-		this.battlelink = '';
+		this.battlelink = battleId;
 		this.replay = '';
 		this.winner = '';
 		this.loser = '';
