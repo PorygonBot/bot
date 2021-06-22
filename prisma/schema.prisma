@@ -16,11 +16,6 @@ enum KillType {
 	N
 }
 
-enum PingTime {
-	SENT
-	FIRST
-}
-
 enum StatsFormat {
 	D
 	CSV
@@ -62,5 +57,4 @@ model Rules {
 	tb                Boolean     @default(true)
 	combine           Boolean     @default(false)
 	redirect          String      @default("")
-	timeOfPing        PingTime    @default(FIRST)
 }

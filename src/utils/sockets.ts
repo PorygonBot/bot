@@ -2,11 +2,13 @@ import WebSocket from 'ws';
 
 interface Socket {
 	name: string;
-	link?: string;
+	link: string;
 	ip: string;
 	server: string;
 	socket: WebSocket;
 }
+
+console.log('hi -1');
 
 const sockets: { [key: string]: Socket } = {
 	showdown: {
@@ -36,28 +38,30 @@ const sockets: { [key: string]: Socket } = {
 		ip: 'oppai.azure.lol:80',
 		server: 'ws://oppai.azure.lol:80/showdown/websocket',
 		socket: new WebSocket('ws://oppai.azure.lol:80/showdown/websocket'),
-    },
-    drafthub: {
+	},
+	drafthub: {
 		name: 'Drafthub',
 		link: 'http://drafthub.psim.us',
 		ip: '128.199.170.203:8000',
 		server: 'ws://128.199.170.203:8000/showdown/websocket',
 		socket: new WebSocket('ws://128.199.170.203:8000/showdown/websocket'),
-    },
-    clover: {
+	},
+	clover: {
 		name: 'Clover',
-		link: 'http://clover.weedl.es',
+		link: 'https://clover.weedl.es',
 		ip: 'clover.weedl.es:8000',
 		server: 'ws://clover.weedl.es:8000/showdown/websocket',
 		socket: new WebSocket('ws://clover.weedl.es:8000/showdown/websocket'),
-    },
-    radicalred: {
+	},
+	radicalred: {
 		name: 'Radical Red',
-		link: 'http://play.radicalred.net',
+		link: 'https://play.radicalred.net',
 		ip: 'sim.radicalred.net:8000',
 		server: 'ws://sim.radicalred.net:8000/showdown/websocket',
 		socket: new WebSocket('ws://sim.radicalred.net:8000/showdown/websocket'),
-    },
+	},
 };
+
+console.log('hi 0');
 
 export default sockets;

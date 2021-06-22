@@ -15,7 +15,6 @@ interface Rules {
 	tb: Boolean,
 	combine: Boolean,
 	redirect: string,
-	timeOfPing: string
 }
 
 export default Rules

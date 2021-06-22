@@ -89,7 +89,6 @@ class Prisma {
 			forfeit: 'N',
 			format: '',
 			quirks: true,
-			timeOfPing: 'First',
 			stopTalking: false,
 			tb: true,
 			combine: false,

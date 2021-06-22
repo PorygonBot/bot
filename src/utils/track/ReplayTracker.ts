@@ -1,22 +1,17 @@
-import { Message } from 'discord.js';
 import axios from 'axios';
-import { Rules } from '../../types';
-import { Battle } from '../../types';
-import { Pokemon } from '../../types';
+import { Rules, Battle } from '../../types';
 import track from './tracker';
 import consts from './consts';
 
 class ReplayTracker {
 	link: string;
 	battlelink: string;
-	message: Message;
 	rules: Rules;
 	battle: Battle;
 
-	constructor(link: string, message: Message, rules: Rules) {
+	constructor(link: string, rules: Rules) {
 		this.link = link;
 		this.battlelink = link.split('/')[3];
-		this.message = message;
 		this.rules = rules;
 
 		this.battle = new Battle('', '', ''); //This is purely for the purposes of placating TypeScript
@@ -59,9 +54,9 @@ class ReplayTracker {
 				//Checks if the battle is a randoms match
 				else if (line.startsWith(`|tier|`)) {
 					if (line.toLowerCase().includes('random')) {
-						return this.message.channel.send(
-							":x: **Error!** This is a Randoms match. I don't work with Randoms matches."
-						);
+						return {
+							error: ":x: **Error!** This is a Randoms match. I don't work with Randoms matches.",
+						};
 					}
 				}
 
@@ -76,8 +71,8 @@ class ReplayTracker {
 					for (let pokemonKey of Object.keys(this.battle.p1Pokemon)) {
 						if (!(pokemonKey.includes('-') || pokemonKey.includes(':'))) {
 							let pokemon = this.battle.p1Pokemon[pokemonKey];
-							this.battle.p1Pokemon[pokemon.name].directKills += pokemon.currentDirectKills;
-							this.battle.p1Pokemon[pokemon.name].passiveKills += pokemon.currentPassiveKills;
+							this.battle.p1Pokemon[pokemon.name].directKills += pokemon.currentDKills;
+							this.battle.p1Pokemon[pokemon.name].passiveKills += pokemon.currentPKills;
 						}
 					}
 					//Team 2
@@ -85,8 +80,8 @@ class ReplayTracker {
 					for (let pokemonKey of Object.keys(this.battle.p2Pokemon)) {
 						if (!(pokemonKey.includes('-') || pokemonKey.includes(':'))) {
 							let pokemon = this.battle.p2Pokemon[pokemonKey];
-							this.battle.p2Pokemon[pokemon.name].directKills += pokemon.currentDirectKills;
-							this.battle.p2Pokemon[pokemon.name].passiveKills += pokemon.currentPassiveKills;
+							this.battle.p2Pokemon[pokemon.name].directKills += pokemon.currentDKills;
+							this.battle.p2Pokemon[pokemon.name].passiveKills += pokemon.currentPKills;
 						}
 					}
 
@@ -184,29 +179,17 @@ class ReplayTracker {
 
 					this.battle.history = this.battle.history.length === 0 ? ['Nothing happened'] : this.battle.history;
 
-					await axios
-						.post(
-							`https://server.porygonbot.xyz/kills/${this.battlelink}`,
-							this.battle.history.join('<br>'),
-							{
-								headers: {
-									'Content-Length': 0,
-									'Content-Type': 'text/plain',
-								},
-								responseType: 'text',
-							}
-						)
-						.catch(async (e) => {
-							await this.message.channel.send(
-								`:x: Error with match number \`${
-									this.battlelink
-								}\`. I will be unable to update this match until you screenshot this message and send it to the Porygon server's bugs-and-help channel and ping harbar20 in the same channel.\n\n**Error:**\`\`\`${
-									e.message
-								}\nLine number: ${e.stack.split(':')[2]}\`\`\``
-							);
-
-							console.error(e);
-						});
+					await axios.post(
+						`https://server.porygonbot.xyz/kills/${this.battlelink}`,
+						this.battle.history.join('<br>'),
+						{
+							headers: {
+								'Content-Length': 0,
+								'Content-Type': 'text/plain',
+							},
+							responseType: 'text',
+						}
+					);
 
 					//Setting up the final object for returning
 					let returnData = {

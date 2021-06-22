@@ -2,7 +2,8 @@
 import * as dotenv from 'dotenv';
 import axios from 'axios';
 import { Message } from 'discord.js';
-import { client, Prisma, ReplayTracker } from './utils';
+import { client, Prisma, ReplayTracker, LiveTracker, sockets, funcs, consts } from './utils';
+import { Battle } from './types';
 // Setting things up
 dotenv.config();
 
@@ -75,11 +76,80 @@ client.on('message', async (message: Message) => {
 			let rules = await Prisma.getRules(channel.id);
 
 			//Analyzing the replay
-			let replayer = new ReplayTracker(link, message, rules);
+			let replayer = new ReplayTracker(link, rules);
 			const matchJson = await replayer.track(data);
 
 			await channel.send(JSON.stringify(matchJson));
 			console.log(`${link} has been analyzed!`);
+		}
+	}
+
+	//If it's sent in a validly-named live links channel, join the battle
+	else if (channel.name.includes('live-links') || channel.name.includes('live-battles')) {
+		try {
+			//Extracting battlelink from the message
+			const urlRegex = /(https?:\/\/[^ ]*)/;
+			const links = msgStr.match(urlRegex);
+			let battlelink = '';
+			if (links) battlelink = links[0];
+			let battleId = battlelink && battlelink.split('/')[3];
+
+			if (Battle.battles.includes(battleId)) {
+				return channel.send(
+					`:x: I'm already tracking this battle. If you think this is incorrect, send a replay of this match in the #bugs-and-help channel in the Porygon server.`
+				);
+			}
+
+			if (
+				battlelink &&
+				!(
+					battlelink.includes('google') ||
+					battlelink.includes('replay') ||
+					battlelink.includes('draft-league.nl') ||
+					battlelink.includes('porygonbot.xyz')
+				)
+			) {
+				console.log('hi 1');
+				let server = Object.values(sockets).filter((socket) => battlelink.startsWith(socket.link))[0];
+				if (!server) {
+					return channel.send('This link is not a valid Pokemon Showdown battle url.');
+				}
+				console.log('hi 2');
+
+				//Getting the rules
+				let rules = await Prisma.getRules(channel.id);
+
+				if (!rules.stopTalking) await channel.send('Joining the battle...').catch((e) => console.error(e));
+
+				Battle.incrementBattles(battleId);
+				client.user!.setActivity(`${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`, {
+					type: 'WATCHING',
+				});
+				const tracker = new LiveTracker(battleId, server.name, rules, server.socket);
+				console.log('hi 3');
+
+				server.socket.send(`|/join ${battleId}`);
+				if (!rules.stopTalking)
+					await message.channel.send(`Battle joined! Keeping track of stats now. ${rules.ping}`);
+				console.log('hi 4');
+
+				console.log('hi 5');
+				server.socket.send(
+					`${battleId}|${
+						rules.quirks
+							? funcs.randomElement(consts.quirkyMessages.start)
+							: 'Battled joined! Keeping track of stats now.'
+					}`
+				);
+				console.log('hi 6');
+
+				//Websocket tracking time!
+				console.log('hi 7');
+				server.socket.on('message', tracker.track);
+				console.log('hi 8');
+			}
+		} catch (e) {
+			console.error(e);
 		}
 	}
 });

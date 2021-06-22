@@ -6,9 +6,9 @@ class Pokemon {
 	statusType: string;
 	otherAffliction: { [key: string]: string };
 	causeOfDeath: string;
-	currentDirectKills: number;
+	currentDKills: number;
 	directKills: number;
-	currentPassiveKills: number;
+	currentPKills: number;
 	passiveKills: number;
 	isDead: Boolean;
 	killer: string;
@@ -22,9 +22,9 @@ class Pokemon {
 		this.statusType = ''; //Passive or Direct or undefined
 		this.otherAffliction = {}; //Like Leech Seed and stuff
 		this.causeOfDeath = 'n/a';
-		this.currentDirectKills = 0;
+		this.currentDKills = 0;
 		this.directKills = 0;
-		this.currentPassiveKills = 0;
+		this.currentPKills = 0;
 		this.passiveKills = 0;
 		this.isDead = false;
 		this.killer = '';
@@ -52,14 +52,14 @@ class Pokemon {
 	//When the pokemon has killed another pokemon in battle
 	killed(deathJson: { killer: string; isPassive: Boolean }) {
 		if (deathJson.killer) {
-			if (deathJson.isPassive) this.currentPassiveKills++;
-			else this.currentDirectKills++;
+			if (deathJson.isPassive) this.currentPKills++;
+			else this.currentDKills++;
 		}
 	}
 
 	unkilled(isPassive?: Boolean) {
-		if (isPassive) this.currentPassiveKills--;
-		else this.currentDirectKills--;
+		if (isPassive) this.currentPKills--;
+		else this.currentDKills--;
 	}
 
 	//Run when the pokemon has died in battle

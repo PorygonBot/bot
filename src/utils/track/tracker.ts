@@ -31,10 +31,10 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 
 		if (battle[side].name !== '') {
 			//Adding the kills
-			let tempCurrentDirectKills = battle[side].currentDirectKills;
-			let tempCurrentPassiveKills = battle[side].currentPassiveKills;
-			battle[side].currentDirectKills = 0;
-			battle[side].currentPassiveKills = 0;
+			let tempCurrentDirectKills = battle[side].currentDKills;
+			let tempCurrentPassiveKills = battle[side].currentPKills;
+			battle[side].currentDKills = 0;
+			battle[side].currentPKills = 0;
 			battle[side].directKills += tempCurrentDirectKills;
 			battle[side].passiveKills += tempCurrentPassiveKills;
 
@@ -77,14 +77,14 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 		const playerSide = side.substring(0, 2) as 'p1' | 'p2';
 		let replacer = parts[2].split(',')[0].split('-')[0];
 
-		let tempCurrentDirectKills = battle[side].currentDirectKills;
-		let tempCurrentPassiveKills = battle[side].currentPassiveKills;
-		battle[side].currentDirectKills = 0;
-		battle[side].currentPassiveKills = 0;
+		let tempCurrentDirectKills = battle[side].currentDKills;
+		let tempCurrentPassiveKills = battle[side].currentPKills;
+		battle[side].currentDKills = 0;
+		battle[side].currentPKills = 0;
 		let oldPokemon: Pokemon = battle[side];
 		battle[side] = battle[`${playerSide}Pokemon` as const][replacer];
-		battle[side].currentDirectKills += tempCurrentDirectKills;
-		battle[side].currentPassiveKills += tempCurrentPassiveKills;
+		battle[side].currentDKills += tempCurrentDirectKills;
+		battle[side].currentPKills += tempCurrentPassiveKills;
 
 		console.log(
 			`${battle.battlelink}: ${oldPokemon.realName || oldPokemon.name} has been replaced by ${
@@ -251,7 +251,7 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 
 			inflictor = battle[inflictorSide].name;
 			victim = battle[victimSide].realName || battle[victimSide].name;
-			battle[victimSide].statusEffect(parts[2] === 'tox' ? 'psn' : parts[2], inflictor, 'Passive');
+			battle[victimSide].statusEffect(parts[2] === 'tox' ? 'psn' : parts[2], inflictor, 'P');
 			inflictor = battle[inflictorSide].realName || battle[inflictorSide].name;
 		} else if (
 			(prevMoveLine.startsWith(`|move|`) && consts.statusMoves.includes(prevMove)) ||
@@ -265,7 +265,7 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 			) as 'p1a' | 'p1b' | 'p2a' | 'p2b';
 
 			inflictor = battle[inflictorSide].name;
-			battle[victimSide].statusEffect(parts[2] === 'tox' ? 'psn' : parts[2], inflictor, 'Passive');
+			battle[victimSide].statusEffect(parts[2] === 'tox' ? 'psn' : parts[2], inflictor, 'P');
 			inflictor = battle[inflictorSide].realName || battle[inflictorSide].name;
 			victim = battle[victimSide].realName || battle[victimSide].name;
 		} else if (
@@ -290,7 +290,7 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 			} else {
 				inflictor = battle.hazardsSet.p2['Toxic Spikes'];
 			}
-			battle[victimSide].statusEffect(parts[2], inflictor, 'Passive');
+			battle[victimSide].statusEffect(parts[2], inflictor, 'P');
 		}
 		console.log(`${battle.battlelink}: ${inflictor} caused ${parts[2]} on ${victim}.`);
 		battle.history.push(`${inflictor} caused ${parts[2]} on ${victim} (Turn ${battle.turns}).`);
@@ -391,11 +391,11 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 				let deathJson = battle[side].died(affliction, afflictor, true);
 				battle[`${currentPlayer}Pokemon` as const][afflictor].killed(deathJson);
 			} else {
-				if (rules.suicide !== 'None') {
+				if (rules.suicide !== 'N') {
 					killer = battle[`${currentPlayer}a` as const].realName || battle[`${currentPlayer}a` as const].name;
 				}
 
-				let deathJson = battle[side].died(prevMove, killer, rules.suicide === 'Passive');
+				let deathJson = battle[side].died(prevMove, killer, rules.suicide === 'P');
 				if (killer) {
 					battle[`${currentPlayer}Pokemon` as const][killer].killed(deathJson);
 				}
@@ -493,7 +493,7 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 					let deathJson = battle[victimSide].died(move, killer, true);
 					if (Object.keys(battle[`${victimPlayerSide}Pokemon` as const]).includes(killer)) {
 						killer =
-							rules.selfteam !== 'None' ? battle[oppositeSide].realName || battle[oppositeSide].name : '';
+							rules.selfteam !== 'N' ? battle[oppositeSide].realName || battle[oppositeSide].name : '';
 					}
 
 					if (killer) {
@@ -512,7 +512,7 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 					let deathJson = battle[victimSide].died(move, killer, true);
 					if (Object.keys(battle[`${victimPlayerSide}Pokemon` as const]).includes(killer))
 						killer =
-							rules.selfteam !== 'None'
+							rules.selfteam !== 'N'
 								? battle[oppositeSide].realName || battle[oppositeSide].name
 								: 'an ally';
 
@@ -530,7 +530,7 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 
 					let deathJson = battle[victimSide].died(move, killer, true);
 					if (Object.keys(battle[`${victimPlayerSide}Pokemon` as const]).includes(killer)) {
-						killer = rules.selfteam !== 'None' ? battle[oppositeSide].name : 'an ally';
+						killer = rules.selfteam !== 'N' ? battle[oppositeSide].name : 'an ally';
 					}
 
 					if (killer) {
@@ -538,22 +538,22 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 					}
 
 					victim = battle[victimSide].realName || battle[victimSide].name;
-					reason = `${move} (${battle[victimSide].statusType === 'Passive' ? 'passive' : 'direct'}) (Turn ${
+					reason = `${move} (${battle[victimSide].statusType === 'P' ? 'passive' : 'direct'}) (Turn ${
 						battle.turns
 					})`;
 				}
 
 				//Recoil
 				else if (consts.recoilMoves.includes(move) || move.toLowerCase() === 'recoil') {
-					if (rules.recoil !== 'None') killer = battle[oppositeSide].name;
+					if (rules.recoil !== 'N') killer = battle[oppositeSide].name;
 					else killer = '';
 
-					let deathJson = battle[victimSide].died('recoil', killer, rules.recoil === 'Passive');
+					let deathJson = battle[victimSide].died('recoil', killer, rules.recoil === 'P');
 
 					if (killer) battle[`${victimPlayerSide}Pokemon` as const][killer].killed(deathJson);
 					victim = battle[victimSide].realName || battle[victimSide].name;
 
-					reason = `recoil (${rules.recoil === 'Passive' ? 'passive' : 'direct'}) (Turn ${battle.turns})`;
+					reason = `recoil (${rules.recoil === 'P' ? 'passive' : 'direct'}) (Turn ${battle.turns})`;
 				}
 
 				//Item or Ability
@@ -567,29 +567,29 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 
 					if (owner === victimSide) {
 						victim = battle[owner].realName || battle[owner].name;
-						if (rules.suicide !== 'None') victim = battle[victimSide].realName || battle[victimSide].name;
+						if (rules.suicide !== 'N') victim = battle[victimSide].realName || battle[victimSide].name;
 
-						let deathJson = battle[victimSide].died(prevMove, killer, rules.suicide === 'Passive');
+						let deathJson = battle[victimSide].died(prevMove, killer, rules.suicide === 'P');
 						if (killer) {
 							battle.p2Pokemon[killer].killed(deathJson);
 						}
 						killer = 'suicide';
-						reason = `${item} (${rules.suicide === 'Passive' ? 'passive' : 'direct'}) (Turn ${
+						reason = `${item} (${rules.suicide === 'P' ? 'passive' : 'direct'}) (Turn ${
 							battle.turns
 						})`;
 					} else {
 						if (!battle[victimSide].isDead) {
 							victim = battle[victimSide].realName || battle[victimSide].name;
 
-							if (rules.abilityitem !== 'None')
+							if (rules.abilityitem !== 'N')
 								killer = battle[oppositeSide].realName || battle[oppositeSide].name;
 							else killer = '';
 
-							let deathJson = battle[victimSide].died(item, killer, rules.abilityitem === 'Passive');
+							let deathJson = battle[victimSide].died(item, killer, rules.abilityitem === 'P');
 							if (killer) battle[`${oppositePlayerSide}Pokemon` as const][killer].killed(deathJson);
 						}
 
-						reason = `${item} (${rules.abilityitem === 'Passive' ? 'passive' : 'direct'}) (Turn ${
+						reason = `${item} (${rules.abilityitem === 'P' ? 'passive' : 'direct'}) (Turn ${
 							battle.turns
 						})`;
 					}
@@ -605,7 +605,7 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 					if (victim.includes(killer) || killer.includes(victim))
 						killer = battle[oppositeSide].realName || battle[oppositeSide].name;
 
-					let deathJson = battle[victimSide].died(prevMove, killer, rules.suicide === 'Passive');
+					let deathJson = battle[victimSide].died(prevMove, killer, rules.suicide === 'P');
 					battle[`${oppositePlayerSide}Pokemon` as const][killer].killed(deathJson);
 
 					reason = `${move} (passive) (Turn ${battle.turns})`;
@@ -686,11 +686,11 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 			let killerSide = prevLine.split('|').slice(1)[1].split(': ')[0] as 'p1a' | 'p1b' | 'p2a' | 'p2b';
 			let killer = '';
 			let victim = battle[victimSide].realName || battle[victimSide].name;
-			if (rules.db !== 'None') {
+			if (rules.db !== 'N') {
 				killer = battle[killerSide].name;
 			}
 
-			let deathJson = battle[victimSide].died('Destiny Bond', killer, rules.db === 'Passive');
+			let deathJson = battle[victimSide].died('Destiny Bond', killer, rules.db === 'P');
 			battle[`${victimPlayerSide}Pokemon` as const][killer].killed(deathJson);
 
 			console.log(
@@ -712,7 +712,7 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 
 			let killer = '';
 			let victim = '';
-			if (rules.suicide !== 'None') {
+			if (rules.suicide !== 'N') {
 				let newSide = (
 					prevParts[1].split(': ')[0].endsWith('a') || prevParts[1].split(': ')[0].endsWith('b')
 						? prevParts[1].split(': ')[0]
@@ -725,19 +725,19 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 			if (!battle[victimSide].isDead) {
 				victim = battle[victimSide].realName || battle[victimSide].name;
 
-				let deathJson = battle[victimSide].died(prevMove, killer, rules.suicide === 'Passive');
+				let deathJson = battle[victimSide].died(prevMove, killer, rules.suicide === 'P');
 				if (killer && killer !== victim) {
 					battle[`${oppositePlayerSide}Pokemon` as const][killer].killed(deathJson);
 				}
 
 				console.log(
 					`${battle.battlelink}: ${victim} was killed by ${killer || 'suicide'} due to ${prevMove} (${
-						rules.suicide === 'Passive' ? 'passive' : 'direct'
+						rules.suicide === 'P' ? 'passive' : 'direct'
 					}) (Turn ${battle.turns}).`
 				);
 				battle.history.push(
 					`${victim} was killed by ${killer || 'suicide'} due to ${prevMove} (${
-						rules.suicide === 'Passive' ? 'passive' : 'direct'
+						rules.suicide === 'P' ? 'passive' : 'direct'
 					}) (Turn ${battle.turns}).`
 				);
 			}
@@ -769,13 +769,13 @@ function track(line: string, parts: string[], rules: Rules, battle: Battle, data
 		if (line.endsWith('forfeited.')) {
 			let forfeiter = messageParts[0];
 			let forfeiterSide = (forfeiter === battle.p1 ? 'p1' : 'p2') as 'p1' | 'p2';
-			if (rules.forfeit !== 'None') {
+			if (rules.forfeit !== 'N') {
 				let numDead = 0;
 
 				for (let pokemon of Object.values(battle[`${forfeiterSide}Pokemon` as const])) {
 					if (!pokemon.isDead) numDead++;
 				}
-				battle[`${forfeiterSide}a` as const][`current${rules.forfeit as 'Direct' | 'Passive'}Kills` as const] +=
+				battle[`${forfeiterSide}a` as const][`current${rules.forfeit as 'D' | 'P'}Kills` as const] +=
 					numDead;
 			}
 			battle.forfeiter = forfeiter;
