@@ -4,110 +4,10 @@ import axios from 'axios';
 import querystring from 'querystring';
 import WebSocket from 'ws';
 import { Message } from 'discord.js';
-import { client, Prisma, ReplayTracker, LiveTracker, funcs, consts } from './utils';
-import { Battle, Socket } from './types';
+import { client, Prisma, ReplayTracker, LiveTracker, funcs, consts, sockets } from './utils';
+import { Battle, Socket, Stats } from './types';
 // Setting things up
 dotenv.config();
-const sockets: { [key: string]: Socket } = {
-	showdown: {
-		name: 'Showdown',
-		link: 'https://play.pokemonshowdown.com',
-		ip: 'sim3.psim.us:8000',
-		server: 'ws://sim3.psim.us:8000/showdown/websocket',
-		socket: new WebSocket('ws://sim3.psim.us:8000/showdown/websocket'),
-	},
-	sports: {
-		name: 'Sports',
-		link: 'http://sports.psim.us',
-		ip: '34.222.148.43:8000',
-		server: 'ws://34.222.148.43:8000/showdown/websocket',
-		socket: new WebSocket('ws://34.222.148.43:8000/showdown/websocket'),
-	},
-	automatthic: {
-		name: 'Automatthic',
-		link: 'http://automatthic.psim.us',
-		ip: '185.224.89.75:8000',
-		server: 'ws://34.222.148.43:8000/showdown/websocket',
-		socket: new WebSocket('ws://34.222.148.43:8000/showdown/websocket'),
-	},
-	dawn: {
-		name: 'Dawn',
-		link: 'http://dawn.psim.us',
-		ip: 'oppai.azure.lol:80',
-		server: 'ws://oppai.azure.lol:80/showdown/websocket',
-		socket: new WebSocket('ws://oppai.azure.lol:80/showdown/websocket'),
-	},
-	drafthub: {
-		name: 'Drafthub',
-		link: 'http://drafthub.psim.us',
-		ip: '128.199.170.203:8000',
-		server: 'ws://128.199.170.203:8000/showdown/websocket',
-		socket: new WebSocket('ws://128.199.170.203:8000/showdown/websocket'),
-	},
-	clover: {
-		name: 'Clover',
-		link: 'https://clover.weedl.es',
-		ip: 'clover.weedl.es:8000',
-		server: 'ws://clover.weedl.es:8000/showdown/websocket',
-		socket: new WebSocket('ws://clover.weedl.es:8000/showdown/websocket'),
-	},
-	radicalred: {
-		name: 'Radical Red',
-		link: 'https://play.radicalred.net',
-		ip: 'sim.radicalred.net:8000',
-		server: 'ws://sim.radicalred.net:8000/showdown/websocket',
-		socket: new WebSocket('ws://sim.radicalred.net:8000/showdown/websocket'),
-	},
-};
-let tracker: LiveTracker;
-let returnData: {
-	[key: string]: {
-		[key: string]:
-			| { [key: string]: string | { [key: string]: { [key: string]: number } | number } }
-			| string
-			| number;
-	} | string;
-};
-
-for (let socket of Object.values(sockets)) {
-	socket.socket.on('message', async (data) => {
-		let realdata = data.toString()?.split('\n');
-		let dataArr = [];
-
-		for (const line of realdata) {
-			dataArr.push(line);
-
-			//Once the server connects, the bot logs in and joins the battle
-			if (line.startsWith('|challstr|')) {
-				//Logging in
-				const psUrl = `https://play.pokemonshowdown.com/~~${socket.name.toLowerCase()}/action.php`;
-				const loginData = querystring.stringify({
-					act: 'login',
-					name: process.env.PS_USERNAME,
-					pass: process.env.PS_PASSWORD,
-					challstr: line.substring(10),
-				});
-				const response = await axios.post(psUrl, loginData);
-				const json = JSON.parse(response.data.substring(1));
-				const assertion = json.assertion;
-				if (assertion) {
-					socket.socket.send(`|/trn ${process.env.PS_USERNAME},0,${assertion}|`);
-				} else {
-					return;
-				}
-			}
-
-			//Tracking as normal
-			else {
-				if (tracker && tracker.battle) returnData = await tracker.track(line, dataArr);
-			}
-		}
-
-		if (returnData && !returnData.error) {
-			console.log(returnData);
-		}
-	});
-}
 
 // When the client boots up
 client.on('ready', () => {
@@ -188,22 +88,8 @@ client.on('message', async (message: Message) => {
 				client.user!.setActivity(`${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`, {
 					type: 'WATCHING',
 				});
-				tracker = new LiveTracker(battleId, server.name, rules, server.socket);
-
-				server.socket.send(`|/join ${battleId}`);
-				if (!rules.stopTalking)
-					await message.channel.send(`Battle joined! Keeping track of stats now. ${rules.ping}`);
-
-				server.socket.send(
-					`${battleId}|${
-						rules.quirks
-							? funcs.randomElement(consts.quirkyMessages.start)
-							: 'Battled joined! Keeping track of stats now.'
-					}`
-				);
-
-				//Websocket tracking time!
-				server.socket.on('message', tracker.track);
+				let tracker = new LiveTracker(battleId, server.name, rules, message);
+				await tracker.track();
 			}
 		} catch (e) {
 			console.error(e);

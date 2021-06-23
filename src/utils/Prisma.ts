@@ -4,7 +4,7 @@ import { Rules } from '../types';
 const prisma = new PrismaClient();
 
 class Prisma {
-	static async upsertLeague(
+	static async upsertLeague(obj: {
 		channelId: string,
 		system: string,
 		leagueName?: string,
@@ -12,25 +12,25 @@ class Prisma {
 		resultsChannelId?: string,
 		dlId?: string,
 		sheetId?: string
-	) {
+	}) {
 		await prisma.league.upsert({
 			where: {
-				channelId: channelId,
+				channelId: obj.channelId,
 			},
 			update: {
-				system: system as 'D' | 'DM' | 'C' | 'S' | 'DL',
-				resultsChannelId: resultsChannelId ?? '',
-				dlId: dlId ?? '',
-				sheetId: sheetId ?? '',
+				system: obj.system as 'D' | 'DM' | 'C' | 'S' | 'DL',
+				resultsChannelId: obj.resultsChannelId ?? '',
+				dlId: obj.dlId ?? '',
+				sheetId: obj.sheetId ?? '',
 			},
 			create: {
-				name: leagueName ?? '',
-				guildId: guildId ?? '',
-				channelId: channelId,
-				system: system as 'D' | 'DM' | 'C' | 'S' | 'DL',
-				resultsChannelId: resultsChannelId ?? '',
-				dlId: dlId ?? '',
-				sheetId: sheetId ?? '',
+				name: obj.leagueName ?? '',
+				guildId: obj.guildId ?? '',
+				channelId: obj.channelId,
+				system: obj.system as 'D' | 'DM' | 'C' | 'S' | 'DL',
+				resultsChannelId: obj.resultsChannelId ?? '',
+				dlId: obj.dlId ?? '',
+				sheetId: obj.sheetId ?? '',
 			},
 		});
 	}

@@ -5,7 +5,6 @@ interface Socket {
 	link: string;
 	ip: string;
 	server: string;
-	socket: WebSocket;
 }
 
 export default Socket;

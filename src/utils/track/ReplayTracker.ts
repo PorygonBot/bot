@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Rules, Battle } from '../../types';
+import { Rules, Battle, Stats } from '../../types';
 import track from './tracker';
 import consts from './consts';
 
@@ -192,6 +192,8 @@ class ReplayTracker {
 					);
 
 					//Setting up the final object for returning
+					const player1 = this.battle.p1;
+					const player2 = this.battle.p2;
 					let returnData = {
 						players: {} as {
 							[key: string]: {
@@ -201,9 +203,7 @@ class ReplayTracker {
 							};
 						},
 						info: {},
-					};
-					const player1 = this.battle.p1;
-					const player2 = this.battle.p2;
+					} as Stats;
 					returnData.players[player1] = {
 						ps: this.battle.p1,
 						kills: killJsonp1,
@@ -214,18 +214,25 @@ class ReplayTracker {
 						kills: killJsonp1,
 						deaths: deathJsonp1,
 					};
-					info.result = `${info.winner} won ${
-						Object.keys(returnData.players[info.winner].kills).length -
-						Object.keys(returnData.players[info.winner].deaths).filter(
-							(pokemonKey) => returnData.players[info.winner].deaths[pokemonKey] == 1
-						).length
-					}-${
-						Object.keys(returnData.players[info.winner].kills).length -
-						Object.keys(returnData.players[info.loser].deaths).filter(
-							(pokemonKey) => returnData.players[info.loser].deaths[pokemonKey] == 1
-						).length
-					}`;
-					returnData.info = info;
+					returnData.info = {
+						replay: this.battle.replay,
+						turns: this.battle.turns,
+						winner: this.battle.winner,
+						loser: this.battle.loser,
+						history: `https://server.porygonbot.xyz/kills/${this.battlelink}`,
+						rules: this.rules,
+						result: `${this.battle.winner} won ${
+							Object.keys(returnData.players[this.battle.winner].kills).length -
+							Object.keys(returnData.players[this.battle.winner].deaths).filter(
+								(pokemonKey) => returnData.players[this.battle.winner].deaths[pokemonKey] == 1
+							).length
+						}-${
+							Object.keys(returnData.players[this.battle.loser].kills).length -
+							Object.keys(returnData.players[this.battle.loser].deaths).filter(
+								(pokemonKey) => returnData.players[this.battle.loser].deaths[pokemonKey] == 1
+							).length
+						}`,
+					};
 
 					//Done!
 					return returnData;
