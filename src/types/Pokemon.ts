@@ -10,9 +10,9 @@ class Pokemon {
 	directKills: number;
 	currentPKills: number;
 	passiveKills: number;
-	isDead: Boolean;
+	isDead: boolean;
 	killer: string;
-	hasSubstitute: Boolean;
+	hasSubstitute: boolean;
 
 	constructor(pokemonName: string, realName?: string) {
 		this.name = pokemonName;
@@ -50,20 +50,20 @@ class Pokemon {
 	}
 
 	//When the pokemon has killed another pokemon in battle
-	killed(deathJson: { killer: string; isPassive: Boolean }) {
+	killed(deathJson: { killer: string; isPassive: boolean }) {
 		if (deathJson.killer) {
 			if (deathJson.isPassive) this.currentPKills++;
 			else this.currentDKills++;
 		}
 	}
 
-	unkilled(isPassive?: Boolean) {
+	unkilled(isPassive?: boolean) {
 		if (isPassive) this.currentPKills--;
 		else this.currentDKills--;
 	}
 
 	//Run when the pokemon has died in battle
-	died(causeOfDeath: string, killer: string, isPassive: Boolean) {
+	died(causeOfDeath: string, killer: string, isPassive: boolean) {
 		this.causeOfDeath = causeOfDeath;
 		this.killer = killer ? killer : '';
 		this.isDead = true;

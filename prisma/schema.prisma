@@ -53,7 +53,7 @@ model Rules {
 	forfeit           KillType    @default(N)
 	format            StatsFormat @default(D)
 	quirks            Boolean     @default(true)
-	stopTalking       Boolean     @default(false)
+	notalk            Boolean     @default(false)
 	tb                Boolean     @default(true)
 	combine           Boolean     @default(false)
 	redirect          String      @default("")

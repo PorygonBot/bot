@@ -91,7 +91,7 @@ class ReplayTracker {
                                         : "Battled joined! Keeping track of stats now."
                                 }`
                             );
-                            if (!this.rules.stopTalking)
+                            if (!this.rules.notalk)
                                 await this.message.channel.send(
                                     `Battle joined! Keeping track of stats now. ${this.rules.ping}`
                                 );
@@ -423,6 +423,7 @@ class ReplayTracker {
                                                 .deaths[pokemonKey] == 1
                                     ).length
                                 }`,
+                                battleId: this.battlelink,
                             };
 
                             //Updating the stats
@@ -431,6 +432,9 @@ class ReplayTracker {
                             //Done!
                             this.message.channel.send(
                                 `Battle between \`${player1}\` and \`${player2}\` is complete and info has been updated!`
+                            );
+                            this.websocket.send(
+                                `${this.battlelink}|Just testing if this works! -harbar20`
                             );
                             this.websocket.send(`|/leave ${this.battlelink}`);
                             this.websocket.close();
@@ -932,11 +936,16 @@ class ReplayTracker {
                                 | "p2b";
 
                             let inflictor = battle[inflictorSide].name;
+                            let hazard = parts[2].split(": ")[1] || parts[2];
 
                             battle.addHazard(
                                 parts[1].split(": ")[0],
-                                parts[2].split(": ")[1] || parts[2],
+                                hazard,
                                 inflictor
+                            );
+
+                            battle.history.push(
+                                `${hazard} was started by ${inflictor} (Turn ${battle.turns})`
                             );
                         }
 
@@ -1250,10 +1259,13 @@ class ReplayTracker {
                                         }
 
                                         if (killer) {
+                                            console.log(
+                                                `${victimPlayerSide}Pokemon`
+                                            );
+                                            console.log(killer);
                                             battle[
-                                                `${victimPlayerSide}Pokemon` as const
+                                                `${oppositePlayerSide}Pokemon` as const
                                             ][killer].killed(deathJson);
-                                            killer = "an ally";
                                         }
                                         victim =
                                             battle[victimSide].realName ||
@@ -1507,7 +1519,6 @@ class ReplayTracker {
 
                                     reason = `${prevMove} (passive) (Turn ${battle.turns})`;
                                 }
-
                                 //If an affliction triggered
                                 else if (prevMoveLine.includes("|-activate|")) {
                                     killer =
@@ -1586,8 +1597,8 @@ class ReplayTracker {
                                         );
 
                                         if (
-                                            (victimSide ||
-                                                (victimSide &&
+                                            (victimSide !== undefined ||
+                                                (victimSide !== undefined &&
                                                     prevMoveParts[4] &&
                                                     prevMoveParts[4].includes(
                                                         "[spread]"
@@ -1595,15 +1606,19 @@ class ReplayTracker {
                                                     prevMoveParts[4].includes(
                                                         victimSide
                                                     ))) &&
-                                            !battle[victimSide].isDead
-                                        )
+                                            battle[victimSide].isDead
+                                        ) {
                                             victim =
                                                 battle[victimSide].realName ||
                                                 battle[victimSide].name;
+                                        }
+                                        console.log(victim);
 
                                         reason = `${prevMove} (direct) (Turn ${battle.turns})`;
                                     }
                                 }
+
+                                console.log(victim, reason);
                                 if (victim && reason) {
                                     console.log(
                                         `${battle.battlelink}: ${victim} was killed by ${killer} due to ${reason}.`

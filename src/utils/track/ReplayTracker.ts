@@ -231,7 +231,8 @@ class ReplayTracker {
 							Object.keys(returnData.players[this.battle.loser].deaths).filter(
 								(pokemonKey) => returnData.players[this.battle.loser].deaths[pokemonKey] == 1
 							).length
-						}`,
+							}`,
+						battleId: this.battle.id
 					};
 
 					//Done!

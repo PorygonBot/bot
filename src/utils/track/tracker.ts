@@ -958,6 +958,7 @@ function track(
                         reason = `${prevMove} (direct) (Turn ${battle.turns})`;
                     }
                 }
+                console.log(victim, reason);
                 if (victim && reason) {
                     console.log(
                         `${battle.battlelink}: ${victim} was killed by ${killer} due to ${reason}.`

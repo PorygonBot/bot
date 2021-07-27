@@ -6,15 +6,16 @@ interface Rules {
 	abilityitem: string,
 	selfteam: string,
 	db: string,
-	spoiler: Boolean,
+	spoiler: boolean,
 	ping: string,
 	forfeit: string,
 	format: string,
-	quirks: Boolean,
-	stopTalking: Boolean,
-	tb: Boolean,
-	combine: Boolean,
+	quirks: boolean,
+	notalk: boolean,
+	tb: boolean,
+	combine: boolean,
 	redirect: string,
+	isSlash?: boolean,
 }
 
 export default Rules
