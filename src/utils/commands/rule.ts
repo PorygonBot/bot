@@ -19,7 +19,9 @@ export default {
 
         //Getting rules
         let rules: Rules = await Prisma.getRules(channel.id);
-        const oldRules = rules;
+        const oldRules = await Prisma.getRules(channel.id);
+        console.log("rules" + JSON.stringify(rules));
+        console.log("old1" + JSON.stringify(oldRules));
 
         //Help embed
         const ruleEmbed = new MessageEmbed()
@@ -148,10 +150,11 @@ export default {
         }
 
         //Updating the rules
+        console.log("old2" + JSON.stringify(oldRules));
         await Prisma.upsertRules(channel.id, rules.leagueName, rules as unknown as {[key: string]:  string | boolean });
         const newRules = await Prisma.getRules(channel.id);
 
-        console.log("old" + JSON.stringify(oldRules));
+        console.log("old3" + JSON.stringify(oldRules));
         console.log("new" + JSON.stringify(newRules));
     },
 };

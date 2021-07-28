@@ -105,7 +105,7 @@ class Prisma {
             },
         });
 
-        if (numLeagues > 1) {
+        if (numLeagues >= 1) {
             let prismaRules = await prisma.rules
             .findUnique({
                 where: {

@@ -5,8 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "migrate": "npx prisma migrate dev --name init",
-    "build": "tsc --build",
-    "test": "node dist/tester.js",
+    "test": "tsc --build && node dist/tester.js",
     "start": "tsc --build && node ."
   },
   "repository": {
