@@ -2,7 +2,7 @@ import client from './client';
 import Prisma from './prisma';
 import sockets from './sockets';
 import update from './update'
-import { funcs, consts, track, ReplayTracker, LiveTracker } from './track';
+import { funcs, consts, ReplayTracker, LiveTracker } from './track';
 import {commands, commandsArr} from './commands';
 
 export {
@@ -10,7 +10,6 @@ export {
     Prisma,
     funcs,
     consts,
-    track,
     ReplayTracker,
     LiveTracker,
     sockets,

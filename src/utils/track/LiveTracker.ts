@@ -3,7 +3,7 @@ import querystring from "querystring";
 import WebSocket from "ws";
 import { Message } from "discord.js";
 import { Rules, Battle, Stats, Pokemon } from "../../types";
-import { sockets, funcs, consts, track, update } from "..";
+import { sockets, funcs, consts, update } from "..";
 
 class ReplayTracker {
     battlelink: string;
@@ -349,11 +349,13 @@ class ReplayTracker {
                                 }
                             }
 
-                            //Posting to the history server
+                            console.log(`${battle.winner} won!`);
+
                             battle.history =
                                 battle.history.length === 0
                                     ? ["Nothing happened"]
                                     : battle.history;
+
                             await axios.post(
                                 `https://server.porygonbot.xyz/kills/${this.battlelink}`,
                                 battle.history.join("<br>"),
@@ -369,7 +371,7 @@ class ReplayTracker {
                             //Setting up the final object for returning
                             const player1 = battle.p1;
                             const player2 = battle.p2;
-                            returnData = {
+                            let returnData = {
                                 players: {} as {
                                     [key: string]: {
                                         ps: string;
@@ -382,7 +384,8 @@ class ReplayTracker {
                                     };
                                 },
                                 info: {},
-                            } as Stats;
+                                playerNames: [battle.p1, battle.p2],
+                            };
                             returnData.players[player1] = {
                                 ps: battle.p1,
                                 kills: killJsonp1,
@@ -423,18 +426,16 @@ class ReplayTracker {
                                                 .deaths[pokemonKey] == 1
                                     ).length
                                 }`,
-                                battleId: this.battlelink,
+                                battleId: battle.id,
                             };
 
                             //Updating the stats
-                            await update(returnData, this.message);
+                            console.log(JSON.stringify(returnData));
+                            await update(returnData as Stats, this.message);
 
                             //Done!
                             this.message.channel.send(
                                 `Battle between \`${player1}\` and \`${player2}\` is complete and info has been updated!`
-                            );
-                            this.websocket.send(
-                                `${this.battlelink}|Just testing if this works! -harbar20`
                             );
                             this.websocket.send(`|/leave ${this.battlelink}`);
                             this.websocket.close();
@@ -936,16 +937,11 @@ class ReplayTracker {
                                 | "p2b";
 
                             let inflictor = battle[inflictorSide].name;
-                            let hazard = parts[2].split(": ")[1] || parts[2];
 
                             battle.addHazard(
                                 parts[1].split(": ")[0],
-                                hazard,
+                                parts[2].split(": ")[1] || parts[2],
                                 inflictor
-                            );
-
-                            battle.history.push(
-                                `${hazard} was started by ${inflictor} (Turn ${battle.turns})`
                             );
                         }
 
@@ -1214,419 +1210,395 @@ class ReplayTracker {
                             ) as "p1" | "p2";
                             let prevMoveLine = dataArr[dataArr.length - 2];
 
-                            if (prevMoveLine) {
-                                let prevMoveParts = prevMoveLine
-                                    .split("|")
-                                    .slice(1);
-                                let prevMove;
-                                try {
-                                    prevMove = prevMoveParts[2].split(": ")[1];
-                                } catch (e) {
-                                    prevMove = "";
-                                }
-                                let killer = "";
-                                let victim = "";
-                                let reason = "";
+                            if (!prevMoveLine) continue;
 
-                                if (parts[3] && parts[3].includes("[from]")) {
-                                    //It's a special death, not a normal one.
-                                    let move = parts[3].split("[from] ")[1];
+                            let prevMoveParts = prevMoveLine
+                                .split("|")
+                                .slice(1);
+                            let prevMove;
+                            try {
+                                prevMove = prevMoveParts[2].split(": ")[1];
+                            } catch (e) {
+                                prevMove = "";
+                            }
+                            let killer = "";
+                            let victim = "";
+                            let reason = "";
 
-                                    //Hazards
-                                    if (consts.hazardMoves.includes(move)) {
-                                        killer =
-                                            battle.hazardsSet[
-                                                victimSide.substring(0, 2)
-                                            ][move];
-                                        let deathJson = battle[victimSide].died(
-                                            move,
-                                            killer,
-                                            true
-                                        );
-                                        if (
-                                            Object.keys(
-                                                battle[
-                                                    `${victimPlayerSide}Pokemon` as const
-                                                ]
-                                            ).includes(killer)
-                                        ) {
-                                            killer =
-                                                this.rules.selfteam !== "N"
-                                                    ? battle[oppositeSide]
-                                                          .realName ||
-                                                      battle[oppositeSide].name
-                                                    : "";
-                                        }
+                            if (parts[3] && parts[3].includes("[from]")) {
+                                //It's a special death, not a normal one.
+                                let move = parts[3].split("[from] ")[1];
 
-                                        if (killer) {
-                                            console.log(
-                                                `${victimPlayerSide}Pokemon`
-                                            );
-                                            console.log(killer);
-                                            battle[
-                                                `${oppositePlayerSide}Pokemon` as const
-                                            ][killer].killed(deathJson);
-                                        }
-                                        victim =
-                                            battle[victimSide].realName ||
-                                            battle[victimSide].name;
-
-                                        reason = `${move} (passive) (Turn ${battle.turns})`;
-                                    }
-
-                                    //Weather
-                                    else if (
-                                        move === "Hail" ||
-                                        move === "Sandstorm"
-                                    ) {
-                                        killer = battle.weatherInflictor;
-
-                                        let deathJson = battle[victimSide].died(
-                                            move,
-                                            killer,
-                                            true
-                                        );
-                                        if (
-                                            Object.keys(
-                                                battle[
-                                                    `${victimPlayerSide}Pokemon` as const
-                                                ]
-                                            ).includes(killer)
-                                        )
-                                            killer =
-                                                this.rules.selfteam !== "N"
-                                                    ? battle[oppositeSide]
-                                                          .realName ||
-                                                      battle[oppositeSide].name
-                                                    : "an ally";
-
-                                        if (killer) {
-                                            battle[
-                                                `${oppositePlayerSide}Pokemon` as const
-                                            ][killer].killed(deathJson);
-                                        }
-                                        victim =
-                                            battle[victimSide].realName ||
-                                            battle[victimSide].name;
-
-                                        reason = `${move} (passive) (Turn ${battle.turns})`;
-                                    }
-
-                                    //Status
-                                    else if (move === "brn" || move === "psn") {
-                                        killer =
-                                            battle[victimSide].statusInflictor;
-
-                                        let deathJson = battle[victimSide].died(
-                                            move,
-                                            killer,
-                                            true
-                                        );
-                                        if (
-                                            Object.keys(
-                                                battle[
-                                                    `${victimPlayerSide}Pokemon` as const
-                                                ]
-                                            ).includes(killer)
-                                        ) {
-                                            killer =
-                                                this.rules.selfteam !== "N"
-                                                    ? battle[oppositeSide].name
-                                                    : "an ally";
-                                        }
-
-                                        if (killer) {
-                                            battle[
-                                                `${oppositePlayerSide}Pokemon` as const
-                                            ][killer].killed(deathJson);
-                                        }
-
-                                        victim =
-                                            battle[victimSide].realName ||
-                                            battle[victimSide].name;
-                                        reason = `${move} (${
-                                            battle[victimSide].statusType ===
-                                            "P"
-                                                ? "passive"
-                                                : "direct"
-                                        }) (Turn ${battle.turns})`;
-                                    }
-
-                                    //Recoil
-                                    else if (
-                                        consts.recoilMoves.includes(move) ||
-                                        move.toLowerCase() === "recoil"
-                                    ) {
-                                        if (this.rules.recoil !== "N")
-                                            killer = battle[oppositeSide].name;
-                                        else killer = "";
-
-                                        let deathJson = battle[victimSide].died(
-                                            "recoil",
-                                            killer,
-                                            this.rules.recoil === "P"
-                                        );
-
-                                        if (killer)
+                                //Hazards
+                                if (consts.hazardMoves.includes(move)) {
+                                    killer =
+                                        battle.hazardsSet[
+                                            victimSide.substring(0, 2)
+                                        ][move];
+                                    let deathJson = battle[victimSide].died(
+                                        move,
+                                        killer,
+                                        true
+                                    );
+                                    if (
+                                        Object.keys(
                                             battle[
                                                 `${victimPlayerSide}Pokemon` as const
-                                            ][killer].killed(deathJson);
-                                        victim =
-                                            battle[victimSide].realName ||
-                                            battle[victimSide].name;
-
-                                        reason = `recoil (${
-                                            this.rules.recoil === "P"
-                                                ? "passive"
-                                                : "direct"
-                                        }) (Turn ${battle.turns})`;
-                                    }
-
-                                    //Item or Ability
-                                    else if (
-                                        move.startsWith(`item: `) ||
-                                        move.includes(`ability: `) ||
-                                        (parts[3] &&
-                                            parts[3].includes("Spiky Shield"))
+                                            ]
+                                        ).includes(killer)
                                     ) {
-                                        let item = parts[3]
-                                            ? parts[3].split("[from] ")[1]
-                                            : move.split(": ")[1];
-                                        let owner = parts[4]
-                                            ? parts[4]
-                                                  .split(": ")[0]
-                                                  .split("] ")[1] || ""
-                                            : parts[1].split(": ")[0];
-
-                                        if (owner === victimSide) {
-                                            victim =
-                                                battle[owner].realName ||
-                                                battle[owner].name;
-                                            if (this.rules.suicide !== "N")
-                                                victim =
-                                                    battle[victimSide]
-                                                        .realName ||
-                                                    battle[victimSide].name;
-
-                                            let deathJson = battle[
-                                                victimSide
-                                            ].died(
-                                                prevMove,
-                                                killer,
-                                                this.rules.suicide === "P"
-                                            );
-                                            if (killer) {
-                                                battle.p2Pokemon[killer].killed(
-                                                    deathJson
-                                                );
-                                            }
-                                            killer = "suicide";
-                                            reason = `${item} (${
-                                                this.rules.suicide === "P"
-                                                    ? "passive"
-                                                    : "direct"
-                                            }) (Turn ${battle.turns})`;
-                                        } else {
-                                            if (!battle[victimSide].isDead) {
-                                                victim =
-                                                    battle[victimSide]
-                                                        .realName ||
-                                                    battle[victimSide].name;
-
-                                                if (
-                                                    this.rules.abilityitem !==
-                                                    "N"
-                                                )
-                                                    killer =
-                                                        battle[oppositeSide]
-                                                            .realName ||
-                                                        battle[oppositeSide]
-                                                            .name;
-                                                else killer = "";
-
-                                                let deathJson = battle[
-                                                    victimSide
-                                                ].died(
-                                                    item,
-                                                    killer,
-                                                    this.rules.abilityitem ===
-                                                        "P"
-                                                );
-                                                if (killer)
-                                                    battle[
-                                                        `${oppositePlayerSide}Pokemon` as const
-                                                    ][killer].killed(deathJson);
-                                            }
-
-                                            reason = `${item} (${
-                                                this.rules.abilityitem === "P"
-                                                    ? "passive"
-                                                    : "direct"
-                                            }) (Turn ${battle.turns})`;
-                                        }
+                                        killer =
+                                            this.rules.selfteam !== "N"
+                                                ? battle[oppositeSide]
+                                                      .realName ||
+                                                  battle[oppositeSide].name
+                                                : "";
                                     }
 
-                                    //Affliction
-                                    else {
-                                        move = move.includes("move: ")
-                                            ? move.split(": ")[1]
-                                            : move;
+                                    if (killer) {
+                                        battle[
+                                            `${victimPlayerSide}Pokemon` as const
+                                        ][killer].killed(deathJson);
+                                        killer = "an ally";
+                                    }
+                                    victim =
+                                        battle[victimSide].realName ||
+                                        battle[victimSide].name;
 
+                                    reason = `${move} (passive) (Turn ${battle.turns})`;
+                                }
+
+                                //Weather
+                                else if (
+                                    move === "Hail" ||
+                                    move === "Sandstorm"
+                                ) {
+                                    killer = battle.weatherInflictor;
+
+                                    let deathJson = battle[victimSide].died(
+                                        move,
+                                        killer,
+                                        true
+                                    );
+                                    if (
+                                        Object.keys(
+                                            battle[
+                                                `${victimPlayerSide}Pokemon` as const
+                                            ]
+                                        ).includes(killer)
+                                    )
                                         killer =
-                                            battle[victimSide].otherAffliction[
-                                                move
-                                            ] || "";
-                                        victim =
-                                            battle[victimSide].realName ||
-                                            battle[victimSide].name;
+                                            this.rules.selfteam !== "N"
+                                                ? battle[oppositeSide]
+                                                      .realName ||
+                                                  battle[oppositeSide].name
+                                                : "an ally";
 
-                                        if (
-                                            victim.includes(killer) ||
-                                            killer.includes(victim)
-                                        )
-                                            killer =
-                                                battle[oppositeSide].realName ||
-                                                battle[oppositeSide].name;
+                                    if (killer) {
+                                        battle[
+                                            `${oppositePlayerSide}Pokemon` as const
+                                        ][killer].killed(deathJson);
+                                    }
+                                    victim =
+                                        battle[victimSide].realName ||
+                                        battle[victimSide].name;
+
+                                    reason = `${move} (passive) (Turn ${battle.turns})`;
+                                }
+
+                                //Status
+                                else if (move === "brn" || move === "psn") {
+                                    killer = battle[victimSide].statusInflictor;
+
+                                    let deathJson = battle[victimSide].died(
+                                        move,
+                                        killer,
+                                        true
+                                    );
+                                    if (
+                                        Object.keys(
+                                            battle[
+                                                `${victimPlayerSide}Pokemon` as const
+                                            ]
+                                        ).includes(killer)
+                                    ) {
+                                        killer =
+                                            this.rules.selfteam !== "N"
+                                                ? battle[oppositeSide].name
+                                                : "an ally";
+                                    }
+
+                                    if (killer) {
+                                        battle[
+                                            `${oppositePlayerSide}Pokemon` as const
+                                        ][killer].killed(deathJson);
+                                    }
+
+                                    victim =
+                                        battle[victimSide].realName ||
+                                        battle[victimSide].name;
+                                    reason = `${move} (${
+                                        battle[victimSide].statusType === "P"
+                                            ? "passive"
+                                            : "direct"
+                                    }) (Turn ${battle.turns})`;
+                                }
+
+                                //Recoil
+                                else if (
+                                    consts.recoilMoves.includes(move) ||
+                                    move.toLowerCase() === "recoil"
+                                ) {
+                                    if (this.rules.recoil !== "N")
+                                        killer = battle[oppositeSide].name;
+                                    else killer = "";
+
+                                    let deathJson = battle[victimSide].died(
+                                        "recoil",
+                                        killer,
+                                        this.rules.recoil === "P"
+                                    );
+
+                                    if (killer)
+                                        battle[
+                                            `${victimPlayerSide}Pokemon` as const
+                                        ][killer].killed(deathJson);
+                                    victim =
+                                        battle[victimSide].realName ||
+                                        battle[victimSide].name;
+
+                                    reason = `recoil (${
+                                        this.rules.recoil === "P"
+                                            ? "passive"
+                                            : "direct"
+                                    }) (Turn ${battle.turns})`;
+                                }
+
+                                //Item or Ability
+                                else if (
+                                    move.startsWith(`item: `) ||
+                                    move.includes(`ability: `) ||
+                                    (parts[3] &&
+                                        parts[3].includes("Spiky Shield"))
+                                ) {
+                                    let item = parts[3]
+                                        ? parts[3].split("[from] ")[1]
+                                        : move.split(": ")[1];
+                                    let owner = parts[4]
+                                        ? parts[4]
+                                              .split(": ")[0]
+                                              .split("] ")[1] || ""
+                                        : parts[1].split(": ")[0];
+
+                                    if (owner === victimSide) {
+                                        victim =
+                                            battle[owner].realName ||
+                                            battle[owner].name;
+                                        if (this.rules.suicide !== "N")
+                                            victim =
+                                                battle[victimSide].realName ||
+                                                battle[victimSide].name;
 
                                         let deathJson = battle[victimSide].died(
                                             prevMove,
                                             killer,
                                             this.rules.suicide === "P"
                                         );
-                                        battle[
-                                            `${oppositePlayerSide}Pokemon` as const
-                                        ][killer].killed(deathJson);
-
-                                        reason = `${move} (passive) (Turn ${battle.turns})`;
-                                    }
-                                } else if (
-                                    prevMove === "Future Sight" ||
-                                    prevMove === "Doom Desire"
-                                ) {
-                                    //Future Sight or Doom Desire Kill
-                                    killer =
-                                        battle.hazardsSet[victimPlayerSide][
-                                            prevMove
-                                        ];
-                                    let deathJson = battle[victimSide].died(
-                                        prevMove,
-                                        killer,
-                                        false
-                                    );
-                                    battle[
-                                        `${oppositePlayerSide}Pokemon` as const
-                                    ][killer].killed(deathJson);
-
-                                    reason = `${prevMove} (passive) (Turn ${battle.turns})`;
-                                }
-                                //If an affliction triggered
-                                else if (prevMoveLine.includes("|-activate|")) {
-                                    killer =
-                                        battle[victimSide].otherAffliction[
-                                            prevMove
-                                        ];
-                                    let deathJson = battle[victimSide].died(
-                                        prevMove,
-                                        killer,
-                                        false
-                                    );
-                                    battle[
-                                        `${oppositePlayerSide}Pokemon` as const
-                                    ][killer].killed(deathJson);
-
-                                    victim =
-                                        battle[victimSide].realName ||
-                                        battle[victimSide].name;
-                                    reason = `${prevMove} (direct) (Turn ${battle.turns})`;
-                                } else {
-                                    if (
-                                        !(
-                                            ((prevMoveLine.startsWith(
-                                                `|move|`
-                                            ) &&
-                                                (prevMoveLine.includes(
-                                                    "Self-Destruct"
-                                                ) ||
-                                                    prevMoveLine.includes(
-                                                        "Explosion"
-                                                    ) ||
-                                                    prevMoveLine.includes(
-                                                        "Misty Explosion"
-                                                    ) ||
-                                                    prevMoveLine.includes(
-                                                        "Memento"
-                                                    ) ||
-                                                    prevMoveLine.includes(
-                                                        "Healing Wish"
-                                                    ) ||
-                                                    prevMoveLine.includes(
-                                                        "Final Gambit"
-                                                    ) ||
-                                                    prevMoveLine.includes(
-                                                        "Lunar Dance"
-                                                    ))) ||
-                                                prevMoveLine.includes(
-                                                    "Curse"
-                                                )) &&
-                                            prevMoveParts[1].includes(
-                                                victimSide
-                                            )
-                                        )
-                                    ) {
-                                        //It's just a regular effing kill
-                                        prevMove = prevMoveLine
-                                            .split("|")
-                                            .slice(1)[2];
-                                        let prevMoveUserSide =
-                                            prevMoveParts[1].split(": ")[0] as
-                                                | "p1a"
-                                                | "p1b"
-                                                | "p2a"
-                                                | "p2b";
-
-                                        killer =
-                                            battle[prevMoveUserSide].realName ||
-                                            battle[prevMoveUserSide].name;
-                                        let deathJson = battle[victimSide].died(
-                                            "direct",
-                                            killer,
-                                            false
-                                        );
-                                        battle[prevMoveUserSide].killed(
-                                            deathJson
-                                        );
-
-                                        if (
-                                            (victimSide !== undefined ||
-                                                (victimSide !== undefined &&
-                                                    prevMoveParts[4] &&
-                                                    prevMoveParts[4].includes(
-                                                        "[spread]"
-                                                    ) &&
-                                                    prevMoveParts[4].includes(
-                                                        victimSide
-                                                    ))) &&
-                                            battle[victimSide].isDead
-                                        ) {
+                                        if (killer) {
+                                            battle.p2Pokemon[killer].killed(
+                                                deathJson
+                                            );
+                                        }
+                                        killer = "suicide";
+                                        reason = `${item} (${
+                                            this.rules.suicide === "P"
+                                                ? "passive"
+                                                : "direct"
+                                        }) (Turn ${battle.turns})`;
+                                    } else {
+                                        if (!battle[victimSide].isDead) {
                                             victim =
                                                 battle[victimSide].realName ||
                                                 battle[victimSide].name;
-                                        }
-                                        console.log(victim);
 
-                                        reason = `${prevMove} (direct) (Turn ${battle.turns})`;
+                                            if (this.rules.abilityitem !== "N")
+                                                killer =
+                                                    battle[oppositeSide]
+                                                        .realName ||
+                                                    battle[oppositeSide].name;
+                                            else killer = "";
+
+                                            let deathJson = battle[
+                                                victimSide
+                                            ].died(
+                                                item,
+                                                killer,
+                                                this.rules.abilityitem === "P"
+                                            );
+                                            if (killer)
+                                                battle[
+                                                    `${oppositePlayerSide}Pokemon` as const
+                                                ][killer].killed(deathJson);
+                                        }
+
+                                        reason = `${item} (${
+                                            this.rules.abilityitem === "P"
+                                                ? "passive"
+                                                : "direct"
+                                        }) (Turn ${battle.turns})`;
                                     }
                                 }
 
-                                console.log(victim, reason);
-                                if (victim && reason) {
-                                    console.log(
-                                        `${battle.battlelink}: ${victim} was killed by ${killer} due to ${reason}.`
+                                //Affliction
+                                else {
+                                    move = move.includes("move: ")
+                                        ? move.split(": ")[1]
+                                        : move;
+
+                                    killer =
+                                        battle[victimSide].otherAffliction[
+                                            move
+                                        ] || "";
+                                    victim =
+                                        battle[victimSide].realName ||
+                                        battle[victimSide].name;
+
+                                    if (
+                                        victim.includes(killer) ||
+                                        killer.includes(victim)
+                                    )
+                                        killer =
+                                            battle[oppositeSide].realName ||
+                                            battle[oppositeSide].name;
+
+                                    let deathJson = battle[victimSide].died(
+                                        prevMove,
+                                        killer,
+                                        this.rules.suicide === "P"
                                     );
-                                    battle.history.push(
-                                        `${victim} was killed by ${killer} due to ${reason}.`
-                                    );
+                                    battle[
+                                        `${oppositePlayerSide}Pokemon` as const
+                                    ][killer].killed(deathJson);
+
+                                    reason = `${move} (passive) (Turn ${battle.turns})`;
                                 }
+                            } else if (
+                                prevMove === "Future Sight" ||
+                                prevMove === "Doom Desire"
+                            ) {
+                                //Future Sight or Doom Desire Kill
+                                killer =
+                                    battle.hazardsSet[victimPlayerSide][
+                                        prevMove
+                                    ];
+                                let deathJson = battle[victimSide].died(
+                                    prevMove,
+                                    killer,
+                                    false
+                                );
+                                battle[`${oppositePlayerSide}Pokemon` as const][
+                                    killer
+                                ].killed(deathJson);
+
+                                reason = `${prevMove} (passive) (Turn ${battle.turns})`;
+                            }
+
+                            //If an affliction triggered
+                            else if (prevMoveLine.includes("|-activate|")) {
+                                killer =
+                                    battle[victimSide].otherAffliction[
+                                        prevMove
+                                    ];
+                                let deathJson = battle[victimSide].died(
+                                    prevMove,
+                                    killer,
+                                    false
+                                );
+                                battle[`${oppositePlayerSide}Pokemon` as const][
+                                    killer
+                                ].killed(deathJson);
+
+                                victim =
+                                    battle[victimSide].realName ||
+                                    battle[victimSide].name;
+                                reason = `${prevMove} (direct) (Turn ${battle.turns})`;
+                            } else {
+                                if (
+                                    !(
+                                        ((prevMoveLine.startsWith(`|move|`) &&
+                                            (prevMoveLine.includes(
+                                                "Self-Destruct"
+                                            ) ||
+                                                prevMoveLine.includes(
+                                                    "Explosion"
+                                                ) ||
+                                                prevMoveLine.includes(
+                                                    "Misty Explosion"
+                                                ) ||
+                                                prevMoveLine.includes(
+                                                    "Memento"
+                                                ) ||
+                                                prevMoveLine.includes(
+                                                    "Healing Wish"
+                                                ) ||
+                                                prevMoveLine.includes(
+                                                    "Final Gambit"
+                                                ) ||
+                                                prevMoveLine.includes(
+                                                    "Lunar Dance"
+                                                ))) ||
+                                            prevMoveLine.includes("Curse")) &&
+                                        prevMoveParts[1].includes(victimSide)
+                                    )
+                                ) {
+                                    //It's just a regular effing kill
+                                    prevMove = prevMoveLine
+                                        .split("|")
+                                        .slice(1)[2];
+                                    let prevMoveUserSide =
+                                        prevMoveParts[1].split(": ")[0] as
+                                            | "p1a"
+                                            | "p1b"
+                                            | "p2a"
+                                            | "p2b";
+
+                                    killer =
+                                        battle[prevMoveUserSide].realName ||
+                                        battle[prevMoveUserSide].name;
+                                    let deathJson = battle[victimSide].died(
+                                        "direct",
+                                        killer,
+                                        false
+                                    );
+                                    battle[prevMoveUserSide].killed(deathJson);
+
+                                    if (
+                                        (victimSide ||
+                                            (victimSide &&
+                                                prevMoveParts[4] &&
+                                                prevMoveParts[4].includes(
+                                                    "[spread]"
+                                                ) &&
+                                                prevMoveParts[4].includes(
+                                                    victimSide
+                                                ))) &&
+                                        battle[victimSide].isDead
+                                    )
+                                        victim =
+                                            battle[victimSide].realName ||
+                                            battle[victimSide].name;
+
+                                    reason = `${prevMove} (direct) (Turn ${battle.turns})`;
+                                }
+                            }
+
+                            if (victim && reason) {
+                                console.log(
+                                    `${battle.battlelink}: ${victim} was killed by ${killer} due to ${reason}.`
+                                );
+                                battle.history.push(
+                                    `${victim} was killed by ${killer} due to ${reason}.`
+                                );
                             }
                         }
                         dataArr.splice(dataArr.length - 1, 1);

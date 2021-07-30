@@ -1,6 +1,6 @@
 import { Message, Client } from "discord.js";
 import axios from 'axios';
-import { Prisma } from "..";
+import { Prisma, update } from "..";
 import { ReplayTracker } from '../track'
 import { Command } from "../../types";
 
@@ -24,7 +24,9 @@ export default {
 			let rules = await Prisma.getRules(channel.id);
 
 			let replayer = new ReplayTracker(arg, rules);
-			await replayer.track(data);
+			const matchJson = await replayer.track(data);
+
+			await update(matchJson, message)
 			console.log(`${link} has been analyzed!`);
 		}
 	},

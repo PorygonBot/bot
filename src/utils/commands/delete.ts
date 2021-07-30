@@ -14,7 +14,7 @@ export default {
             //Asking for confirmation
             const filter = (m: Message) => m.author === message.author;
             const collector = channel.createMessageCollector(filter, {
-                max: 3,
+                max: 1,
             });
             await channel.send(
                 `Are you sure you want to delete \`${league.name}\` from the database? All your custom rules and modes will be deleted and cannot be undone (respond with "yes").`
