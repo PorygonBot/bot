@@ -6,7 +6,7 @@
   "scripts": {
     "migrate": "npx prisma migrate dev --name init",
     "test": "tsc --build && node dist/tester.js",
-    "start": "tsc --build && node ."
+    "start": "npx prisma migrate dev --name init && tsc --build && node ."
   },
   "repository": {
     "type": "git",
