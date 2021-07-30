@@ -430,7 +430,7 @@ class ReplayTracker {
                             };
 
                             //Updating the stats
-                            console.log(JSON.stringify(returnData));
+                            Battle.decrementBattles(this.battlelink);
                             await update(returnData as Stats, this.message);
 
                             //Done!

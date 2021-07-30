@@ -13,18 +13,39 @@ import {
     funcs,
     consts,
     sockets,
-    commands
+    commands,
 } from "./utils";
 import { Battle, Socket, Stats } from "./types";
-import { artifactregistry } from "googleapis/build/src/apis/artifactregistry";
 // Setting things up
 dotenv.config();
-
 
 // When the client boots up
 client.on("ready", () => {
     console.log(`${client.user!.username} is online!`);
-    client.user!.setActivity("f!hug me plz. I need it.");
+    client.user!.setActivity(
+        `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
+        {
+            type: "WATCHING",
+        }
+    );
+});
+
+client.on("guildCreate", () => {
+    client.user!.setActivity(
+        `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
+        {
+            type: "WATCHING",
+        }
+    );
+});
+
+client.on("guildDelete", () => {
+    client.user!.setActivity(
+        `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
+        {
+            type: "WATCHING",
+        }
+    );
 });
 
 //Websocket for listening for interactions for slash commands
@@ -166,7 +187,9 @@ client.on("message", async (message: Message) => {
         const command =
             commands.get(commandName) ||
             commands.find(
-                (cmd) => (cmd.aliases && cmd.aliases.includes(commandName)) as boolean
+                (cmd) =>
+                    (cmd.aliases &&
+                        cmd.aliases.includes(commandName)) as boolean
             );
         if (!command) return;
 
