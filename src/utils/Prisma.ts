@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Rules } from "../types";
 
+//Database!
 const prisma = new PrismaClient();
 
 class Prisma {
