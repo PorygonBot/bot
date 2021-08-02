@@ -7,7 +7,7 @@
     "migrate": "npx prisma migrate dev --name init",
     "test": "tsc --build && node dist/tester.js",
     "dev": "tsc --build && node .",
-    "start": "node ."
+    "start": "tsc --build && node ."
   },
   "repository": {
     "type": "git",
