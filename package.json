@@ -4,7 +4,7 @@
   "description": "Porygon in Typescript",
   "main": "dist/index.js",
   "scripts": {
-    "migrate": "npx prisma migrate dev --name init",
+    "migrate": "npx prisma migrate dev",
     "test": "tsc --build && node dist/tester.js",
     "dev": "tsc --build && node .",
     "start": "npx prisma migrate deploy && tsc --build && node ."
