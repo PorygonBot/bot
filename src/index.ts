@@ -198,7 +198,7 @@ client.on("message", async (message: Message) => {
             await command.execute(message, args, client);
         } catch (error) {
             console.error(error);
-            message.reply("There was an error trying to execute that command!");
+            message.reply(`There was an error trying to execute that command!\n\n\`\`\`${error.stack}\`\`\``);
         }
     }
 });
