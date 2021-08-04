@@ -14,12 +14,14 @@ class Prisma {
         dlId?: string;
         sheetId?: string;
     }) {
+        const league = await this.getLeague(obj.channelId);
         await prisma.league.upsert({
             where: {
                 channelId: obj.channelId,
             },
             update: {
                 system: obj.system as "D" | "DM" | "C" | "S" | "DL",
+                name: obj.leagueName ?? league?.name,
                 resultsChannelId: obj.resultsChannelId ?? "",
                 dlId: obj.dlId ?? "",
                 sheetId: obj.sheetId ?? "",
