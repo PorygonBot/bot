@@ -123,6 +123,16 @@ class Prisma {
 
         return rules;
     }
+
+    static async getAll() {
+        const leagues = await prisma.league.findMany();
+        const rules = await prisma.rules.findMany();
+
+        return {
+            rules: rules,
+            leagues: leagues
+        };
+    }
 }
 
 export default Prisma;

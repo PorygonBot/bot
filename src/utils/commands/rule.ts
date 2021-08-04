@@ -150,11 +150,6 @@ export default {
         }
 
         //Updating the rules
-        console.log("old2" + JSON.stringify(oldRules));
         await Prisma.upsertRules(channel.id, rules.leagueName, rules as unknown as {[key: string]:  string | boolean });
-        const newRules = await Prisma.getRules(channel.id);
-
-        console.log("old3" + JSON.stringify(oldRules));
-        console.log("new" + JSON.stringify(newRules));
     },
 };

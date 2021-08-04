@@ -20,6 +20,7 @@ enum StatsFormat {
 	D
 	CSV
 	SPACE
+	TOUR
 }
 
 enum System {
