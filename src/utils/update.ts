@@ -223,9 +223,9 @@ const discordUpdate = async (
     let channelId = league?.resultsChannelId;
 
     let messages = [];
-    if (info?.rules.format === "Csv") messages = genCSV(matchJson);
-    else if (info?.rules.format === "Sheets") messages = genSheets(matchJson);
-    else if (info?.rules.format === "Tour") messages = genTour(matchJson);
+    if (info?.rules?.format === "CSV") messages = genCSV(matchJson);
+    else if (info?.rules?.format === "SPACE") messages = genSheets(matchJson);
+    else if (info?.rules?.format === "TOUR") messages = genTour(matchJson);
     else messages = genMessage(matchJson);
 
     console.log(matchJson);
