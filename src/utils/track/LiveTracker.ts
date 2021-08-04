@@ -1257,9 +1257,8 @@ class ReplayTracker {
 
                                     if (killer) {
                                         battle[
-                                            `${victimPlayerSide}Pokemon` as const
+                                            `${oppositePlayerSide}Pokemon` as const
                                         ][killer].killed(deathJson);
-                                        killer = "an ally";
                                     }
                                     victim =
                                         battle[victimSide].realName ||
