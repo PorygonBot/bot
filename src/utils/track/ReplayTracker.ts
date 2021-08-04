@@ -298,7 +298,7 @@ class ReplayTracker {
                         deaths: deathJsonp2,
                     };
                     returnData.info = {
-                        replay: battle.replay,
+                        replay: this.link,
                         turns: battle.turns,
                         winner: battle.winner,
                         loser: battle.loser,
