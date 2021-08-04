@@ -1233,10 +1233,11 @@ class ReplayTracker {
                                         this.rules.recoil === "P"
                                     );
 
-                                    if (killer)
+                                    if (killer) {
                                         battle[
-                                            `${victimPlayerSide}Pokemon` as const
+                                            `${oppositePlayerSide}Pokemon` as const
                                         ][killer].killed(deathJson);
+                                    }
                                     victim =
                                         battle[victimSide].realName ||
                                         battle[victimSide].name;
