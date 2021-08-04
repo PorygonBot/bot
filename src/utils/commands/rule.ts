@@ -19,9 +19,6 @@ export default {
 
         //Getting rules
         let rules: Rules = await Prisma.getRules(channel.id);
-        const oldRules = await Prisma.getRules(channel.id);
-        console.log("rules" + JSON.stringify(rules));
-        console.log("old1" + JSON.stringify(oldRules));
 
         //Help embed
         const ruleEmbed = new MessageEmbed()
@@ -118,38 +115,54 @@ export default {
             switch (ruleKey) {
                 case "recoil":
                     rules.recoil = ruleValue;
+                    break;
                 case "suicide":
                     rules.suicide = ruleValue;
+                    break;
                 case "self":
                 case "team":
                     rules.selfteam = ruleValue;
+                    break;
                 case "ability":
                 case "item":
                     rules.abilityitem = ruleValue;
+                    break;
                 case "db":
                     rules.db = ruleValue;
+                    break;
                 case "spoiler":
                     rules.spoiler = boolRuleValue;
+                    break;
                 case "ping":
                     rules.ping = ruleValue;
+                    break;
                 case "forfeit":
                     rules.forfeit = ruleValue;
+                    break;
                 case "format":
                     rules.format = ruleValue;
+                    break;
                 case "quirks":
                     rules.quirks = boolRuleValue;
+                    break;
                 case "notalk":
                     rules.notalk = boolRuleValue;
+                    break;
                 case "tb":
                     rules.tb = boolRuleValue;
+                    break;
                 case "combine":
                     rules.combine = boolRuleValue;
+                    break;
                 case "redirect":
                     rules.redirect = ruleValue;
+                    break;
             }
         }
 
         //Updating the rules
-        await Prisma.upsertRules(channel.id, rules.leagueName, rules as unknown as {[key: string]:  string | boolean });
+        await Prisma.upsertRules(channel.id, rules.leagueName, rules as unknown as { [key: string]: string | boolean });
+        
+        return await channel.send("Your rules have been set!");
     },
 };
