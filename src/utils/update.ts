@@ -158,7 +158,10 @@ const genSheets = (matchJson: { [key: string]: any }) => {
 
     return [message1, message2];
 };
-const genAppend = (matchJson: { [key: string]: any }) => {
+const genAppend = (
+    matchJson: { [key: string]: any },
+    league: League
+) => {
     //retrieving info from the json object
     let info = matchJson.info;
     let player1 = Object.keys(matchJson.players)[0];
@@ -192,7 +195,7 @@ const genAppend = (matchJson: { [key: string]: any }) => {
     }
 
     return {
-        spreadsheetId: matchJson.sheetId,
+        spreadsheetId: league.sheetId,
         range: `'Raw Stats'!A2:BA2`,
         responseValueRenderOption: "FORMATTED_VALUE",
         valueInputOption: "USER_ENTERED",
@@ -269,7 +272,7 @@ const discordUpdate = async (
 const sheetsUpdate = async (
     matchJson: Stats,
     message: Message,
-    league?: League | null
+    league: League
 ) => {
     //Sheets authentication
     const creds = process.env.GOOGLE_SERVICE_ACCOUNT;
@@ -289,9 +292,10 @@ const sheetsUpdate = async (
     let psPlayer1 = matchJson.playerNames[0];
     let psPlayer2 = matchJson.playerNames[1];
     let info = matchJson.info;
+    const final = genAppend(matchJson, league);
 
     let res = await sheets.spreadsheets.values
-        .append(genAppend(matchJson))
+        .append(final as any)
         .catch((e: Error) => {
             message.channel.send(
                 ":x: I do not have permission to edit the file you provided. If you want me to automatically update your sheet, please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`."
@@ -433,9 +437,10 @@ const update = async (matchJson: Stats, message: Message) => {
     const league = await Prisma.getLeague(message.channel.id);
     let system = league?.system;
 
-    if (system === "S") await sheetsUpdate(matchJson, message, league);
-    else if (system === "DL") await dlUpdate(matchJson, message, league);
-    else await discordUpdate(matchJson, message, league);
+    if (league) {
+        if (system === "S") await sheetsUpdate(matchJson, message, league);
+        else if (system === "DL") await dlUpdate(matchJson, message, league);
+    } else await discordUpdate(matchJson, message, league);
 };
 
 export default update;
