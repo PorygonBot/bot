@@ -38,7 +38,7 @@ const sockets: { [key: string]: Socket } = {
         server: 'ws://clover.weedl.es:8000/showdown/websocket',
     },
     radicalred: {
-        name: 'RR',
+        name: 'RadicalRed',
         link: 'https://play.radicalred.net',
         ip: 'sim.radicalred.net:8000',
         server: 'ws://sim.radicalred.net:8000/showdown/websocket',

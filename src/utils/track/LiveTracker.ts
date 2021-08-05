@@ -442,6 +442,284 @@ class ReplayTracker {
                         }
                     }
 
+                    //If the server doesn't support replays
+                    else if (
+                        line.startsWith("|popup|This server's request IP")
+                    ) {
+                        if (battle) {
+                            battle.replay = "undefined";
+                            battle.history =
+                                battle.history.length === 0
+                                    ? ["Nothing happened"]
+                                    : battle.history;
+                            this.battlelink = this.battlelink.replace(
+                                "battle",
+                                this.serverType
+                            );
+
+                            //Giving mons their proper kills
+                            //Team 1
+                            battle.p1Pokemon[battle.p1a.name] = battle.p1a;
+                            for (let pokemonKey of Object.keys(
+                                battle.p1Pokemon
+                            )) {
+                                if (
+                                    !(
+                                        pokemonKey.includes("-") ||
+                                        pokemonKey.includes(":")
+                                    )
+                                ) {
+                                    let pokemon = battle.p1Pokemon[pokemonKey];
+                                    battle.p1Pokemon[
+                                        pokemon.name
+                                    ].directKills += pokemon.currentDKills;
+                                    battle.p1Pokemon[
+                                        pokemon.name
+                                    ].passiveKills += pokemon.currentPKills;
+                                }
+                            }
+                            //Team 2
+                            battle.p2Pokemon[battle.p2a.name] = battle.p2a;
+                            for (let pokemonKey of Object.keys(
+                                battle.p2Pokemon
+                            )) {
+                                if (
+                                    !(
+                                        pokemonKey.includes("-") ||
+                                        pokemonKey.includes(":")
+                                    )
+                                ) {
+                                    let pokemon = battle.p2Pokemon[pokemonKey];
+                                    battle.p2Pokemon[
+                                        pokemon.name
+                                    ].directKills += pokemon.currentDKills;
+                                    battle.p2Pokemon[
+                                        pokemon.name
+                                    ].passiveKills += pokemon.currentPKills;
+                                }
+                            }
+
+                            //Giving mons their proper names
+                            //Team 1
+                            for (let pokemonName of Object.keys(
+                                battle.p1Pokemon
+                            )) {
+                                const newName =
+                                    battle.p1Pokemon[
+                                        pokemonName
+                                    ].realName.split("-")[0];
+                                if (
+                                    consts.misnomers.includes(newName) ||
+                                    consts.misnomers.includes(pokemonName) ||
+                                    consts.misnomers.includes(
+                                        battle.p1Pokemon[pokemonName].realName
+                                    )
+                                ) {
+                                    battle.p1Pokemon[pokemonName].realName =
+                                        newName;
+                                }
+                                if (pokemonName === "") {
+                                    let possibleIndices = Object.entries(
+                                        battle.p1Pokemon
+                                    ).find(
+                                        ([, value]) =>
+                                            value.realName === pokemonName ||
+                                            value.name === pokemonName
+                                    );
+                                    if (possibleIndices)
+                                        delete battle.p1Pokemon[
+                                            possibleIndices[0]
+                                        ];
+                                }
+                            }
+                            //Team 2
+                            for (let pokemonName of Object.keys(
+                                battle.p2Pokemon
+                            )) {
+                                const newName =
+                                    battle.p2Pokemon[
+                                        pokemonName
+                                    ].realName.split("-")[0];
+                                if (
+                                    consts.misnomers.includes(newName) ||
+                                    consts.misnomers.includes(pokemonName) ||
+                                    consts.misnomers.includes(
+                                        battle.p2Pokemon[pokemonName].realName
+                                    )
+                                ) {
+                                    battle.p2Pokemon[pokemonName].realName =
+                                        newName;
+                                }
+                                if (pokemonName === "") {
+                                    let possibleIndices = Object.entries(
+                                        battle.p2Pokemon
+                                    ).find(
+                                        ([, value]) =>
+                                            value.realName === pokemonName ||
+                                            value.name === pokemonName
+                                    );
+                                    if (possibleIndices)
+                                        delete battle.p2Pokemon[
+                                            possibleIndices[0]
+                                        ];
+                                }
+                            }
+
+                            //Creating the objects for kills and deaths
+                            //Player 1
+                            let killJsonp1: {
+                                [key: string]: { [key: string]: number };
+                            } = {};
+                            let deathJsonp1: { [key: string]: number } = {};
+                            for (let pokemonObj of Object.values(
+                                battle.p1Pokemon
+                            )) {
+                                const realName = pokemonObj.realName;
+
+                                if (
+                                    !(
+                                        Object.keys(killJsonp1).includes(
+                                            pokemonObj.realName
+                                        ) ||
+                                        Object.keys(deathJsonp1).includes(
+                                            pokemonObj.realName
+                                        )
+                                    ) &&
+                                    realName !== ""
+                                ) {
+                                    killJsonp1[realName] = {
+                                        direct: pokemonObj.directKills,
+                                        passive: pokemonObj.passiveKills,
+                                    };
+                                    deathJsonp1[realName] = pokemonObj.isDead
+                                        ? 1
+                                        : 0;
+                                }
+                            }
+                            //Player 2
+                            let killJsonp2: {
+                                [key: string]: { [key: string]: number };
+                            } = {};
+                            let deathJsonp2: { [key: string]: number } = {};
+                            for (let pokemonObj of Object.values(
+                                battle.p2Pokemon
+                            )) {
+                                const realName = pokemonObj.realName;
+
+                                if (
+                                    !(
+                                        Object.keys(killJsonp2).includes(
+                                            pokemonObj.realName
+                                        ) ||
+                                        Object.keys(deathJsonp2).includes(
+                                            pokemonObj.realName
+                                        )
+                                    ) &&
+                                    realName !== ""
+                                ) {
+                                    killJsonp2[realName] = {
+                                        direct: pokemonObj.directKills,
+                                        passive: pokemonObj.passiveKills,
+                                    };
+                                    deathJsonp2[realName] = pokemonObj.isDead
+                                        ? 1
+                                        : 0;
+                                }
+                            }
+
+                            console.log(`${battle.winner} won!`);
+
+                            battle.history =
+                                battle.history.length === 0
+                                    ? ["Nothing happened"]
+                                    : battle.history;
+
+                            await axios.post(
+                                `https://server.porygonbot.xyz/kills/${this.battlelink}`,
+                                battle.history.join("<br>"),
+                                {
+                                    headers: {
+                                        "Content-Length": 0,
+                                        "Content-Type": "text/plain",
+                                    },
+                                    responseType: "text",
+                                }
+                            );
+
+                            //Setting up the final object for returning
+                            const player1 = battle.p1;
+                            const player2 = battle.p2;
+                            let returnData = {
+                                players: {} as {
+                                    [key: string]: {
+                                        ps: string;
+                                        kills: {
+                                            [key: string]: {
+                                                [key: string]: number;
+                                            };
+                                        };
+                                        deaths: { [key: string]: number };
+                                    };
+                                },
+                                info: {},
+                                playerNames: [battle.p1, battle.p2],
+                            };
+                            returnData.players[player1] = {
+                                ps: battle.p1,
+                                kills: killJsonp1,
+                                deaths: deathJsonp1,
+                            };
+                            returnData.players[player2] = {
+                                ps: battle.p2,
+                                kills: killJsonp2,
+                                deaths: deathJsonp2,
+                            };
+                            returnData.info = {
+                                replay: battle.replay,
+                                turns: battle.turns,
+                                winner: battle.winner,
+                                loser: battle.loser,
+                                history: `https://server.porygonbot.xyz/kills/${this.battlelink}`,
+                                rules: this.rules,
+                                result: `${battle.winner} won ${
+                                    Object.keys(
+                                        returnData.players[battle.winner].kills
+                                    ).length -
+                                    Object.keys(
+                                        returnData.players[battle.winner].deaths
+                                    ).filter(
+                                        (pokemonKey) =>
+                                            returnData.players[battle.winner]
+                                                .deaths[pokemonKey] == 1
+                                    ).length
+                                }-${
+                                    Object.keys(
+                                        returnData.players[battle.loser].kills
+                                    ).length -
+                                    Object.keys(
+                                        returnData.players[battle.loser].deaths
+                                    ).filter(
+                                        (pokemonKey) =>
+                                            returnData.players[battle.loser]
+                                                .deaths[pokemonKey] == 1
+                                    ).length
+                                }`,
+                                battleId: battle.id,
+                            };
+
+                            //Updating the stats
+                            Battle.decrementBattles(this.battlelink);
+                            await update(returnData as Stats, this.message);
+
+                            //Done!
+                            this.message.channel.send(
+                                `Battle between \`${player1}\` and \`${player2}\` is complete and info has been updated!`
+                            );
+                            this.websocket.send(`|/leave ${this.battlelink}`);
+                            this.websocket.close();
+                        }
+                    }
+
                     //At the beginning of every non-randoms match, a list of Pokemon show up.
                     //This code is to get all that
                     if (line.startsWith(`|poke|`)) {

@@ -10,8 +10,6 @@ import {
     Prisma,
     ReplayTracker,
     LiveTracker,
-    funcs,
-    consts,
     sockets,
     commands,
 } from "./utils";
