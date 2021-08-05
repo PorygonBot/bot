@@ -15,7 +15,7 @@ const genMessage = (matchJson: { [key: string]: any }) => {
     let deathJson1 = matchJson.players[psPlayer1].deaths;
     let killJson2 = matchJson.players[psPlayer2].kills;
     let deathJson2 = matchJson.players[psPlayer2].deaths;
-    let combinePD = matchJson.info.combine;
+    let combinePD = matchJson.info.rules.combine;
 
     let message1 = "";
     let message2 = "";
@@ -53,7 +53,7 @@ const genCSV = (matchJson: { [key: string]: any }) => {
     let deathJson1 = matchJson.players[psPlayer1].deaths;
     let killJson2 = matchJson.players[psPlayer2].kills;
     let deathJson2 = matchJson.players[psPlayer2].deaths;
-    let combinePD = matchJson.info.combine;
+    let combinePD = matchJson.info.rules.combine;
 
     let message1 = "";
     let message2 = "";
@@ -91,7 +91,7 @@ const genTour = (matchJson: { [key: string]: any }) => {
     let deathJson1 = matchJson.players[psPlayer1].deaths;
     let killJson2 = matchJson.players[psPlayer2].kills;
     let deathJson2 = matchJson.players[psPlayer2].deaths;
-    let combinePD = matchJson.info.combine;
+    let combinePD = matchJson.info.rules.combine;
 
     let message1 = "";
 
@@ -128,7 +128,7 @@ const genSheets = (matchJson: { [key: string]: any }) => {
     let deathJson1 = matchJson.players[psPlayer1].deaths;
     let killJson2 = matchJson.players[psPlayer2].kills;
     let deathJson2 = matchJson.players[psPlayer2].deaths;
-    let combinePD = matchJson.info.combine;
+    let combinePD = matchJson.info.rules.combine;
 
     let message1 = "";
     let message2 = "";
