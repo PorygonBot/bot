@@ -9,7 +9,7 @@ export default {
         const channel = message.channel;
 
         //Getting the rules
-        let rules = await Prisma.getRules(channel.id) as Rules;
+        let rules = (await Prisma.getRules(channel.id)) as Rules;
         //Getting the league's info
         let league = await Prisma.getLeague(channel.id);
         let leagueName = league?.name;
@@ -19,14 +19,22 @@ export default {
             .setDescription(
                 `The rules that have been attributed to ${leagueName}.`
             )
-            .setColor(0xffc0cb);
-
-        for (let rule of Object.keys(rules)) {
-            rulesEmbed.addField(
-                rule,
-                rules[rule as keyof Rules] === "" ? "None" : rules[rule as keyof Rules] || false
-            );
-        }
+            .setColor(0xffc0cb)
+            .addField("Channel", `<#${rules.channelId}>`)
+            .addField("Recoil", rules.recoil)
+            .addField("Suicide", rules.suicide)
+            .addField("Ability/Item", rules.abilityitem)
+            .addField("Self/Team", rules.selfteam)
+            .addField("Destiny Bond", rules.db)
+            .addField("Spoiler", rules.spoiler)
+            .addField("Ping", rules.ping || "None")
+            .addField("Forfeit", rules.forfeit)
+            .addField("Format", rules.format)
+            .addField("Quirks", rules.quirks)
+            .addField("No Talk", rules.notalk)
+            .addField("Tidbits", rules.tb)
+            .addField("Combine P/D", rules.combine)
+            .addField("Redirect Channel", rules.redirect || "None");
 
         return channel.send(rulesEmbed);
     },
