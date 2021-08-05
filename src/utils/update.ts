@@ -305,6 +305,8 @@ const sheetsUpdate = async (
             2,
             info.rules.redirect.length - 1
         );
+        league.system = "C";
+        league.resultsChannelId = info.rules.redirect.substring(2, info.rules.redirect.length - 1);
         await discordUpdate(matchJson, message, league);
     } else {
         message.channel.send(
@@ -392,11 +394,12 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
             content: `A match in the ${leagueData.league_name} between the ${discordPlayerData.team_name} and the ${matchData.opponent_team_name} has just been submitted by Porygon Automatic Import.\nReplay: <${matchJson.info.replay}>\nResult: ||${result}||`,
         });
         if (info.rules.redirect) {
-            league!.resultsChannelId = info.rules.redirect.substring(
+            league.resultsChannelId = info.rules.redirect.substring(
                 2,
                 info.rules.redirect.length - 1
             );
-            league!.system = "C";
+            league.system = "C";
+            league.resultsChannelId = info.rules.redirect;
             discordUpdate(matchJson, message, league);
         } else {
             await message.channel.send(
@@ -415,7 +418,7 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
         );
         console.error(e);
         //Send the stats
-        league!.system = "D";
+        league.system = "D";
         discordUpdate(matchJson, message, league);
     }
 };
@@ -426,6 +429,7 @@ const update = async (matchJson: Stats, message: Message) => {
     if (league) {
         if (system === "S") await sheetsUpdate(matchJson, message, league);
         else if (system === "DL") await dlUpdate(matchJson, message, league);
+        else await discordUpdate(matchJson, message, league);
     } else await discordUpdate(matchJson, message, league);
 };
 
