@@ -158,10 +158,7 @@ const genSheets = (matchJson: { [key: string]: any }) => {
 
     return [message1, message2];
 };
-const genAppend = (
-    matchJson: { [key: string]: any },
-    league: League
-) => {
+const genAppend = (matchJson: { [key: string]: any }, league: League) => {
     //retrieving info from the json object
     let info = matchJson.info;
     let player1 = Object.keys(matchJson.players)[0];
@@ -205,10 +202,10 @@ const genAppend = (
                 [
                     player1,
                     player2,
-                    info?.winner,
+                    info.winner,
                     ...values,
-                    info?.replay,
-                    info?.turns,
+                    info.replay,
+                    info.turns,
                 ],
             ],
         },
@@ -226,9 +223,9 @@ const discordUpdate = async (
     let channelId = league?.resultsChannelId;
 
     let messages = [];
-    if (info?.rules?.format === "CSV") messages = genCSV(matchJson);
-    else if (info?.rules?.format === "SPACE") messages = genSheets(matchJson);
-    else if (info?.rules?.format === "TOUR") messages = genTour(matchJson);
+    if (info.rules?.format === "CSV") messages = genCSV(matchJson);
+    else if (info.rules?.format === "SPACE") messages = genSheets(matchJson);
+    else if (info.rules?.format === "TOUR") messages = genTour(matchJson);
     else messages = genMessage(matchJson);
 
     console.log(matchJson);
@@ -241,21 +238,21 @@ const discordUpdate = async (
     let finalMessage = "";
 
     //finally sending players the info
-    if (info?.rules.format === "Tour") {
-        if (info?.rules.spoiler) finalMessage = `||${message1}||`;
+    if (info.rules.format === "Tour") {
+        if (info.rules.spoiler) finalMessage = `||${message1}||`;
         else finalMessage = message1;
     } else {
-        if (info?.rules.spoiler)
+        if (info.rules.spoiler)
             finalMessage = `||**${psPlayer1}**: \n${message1}|| \n||**${psPlayer2}**: \n${message2}||`;
         else
             finalMessage = `**${psPlayer1}**: \n${message1} \n**${psPlayer2}**: \n${message2}`;
     }
 
-    if (info?.rules.tb) {
+    if (info.rules.tb) {
         finalMessage = `**Result:** ${
-            info?.rules.spoiler ? `|| ${info?.result}||` : info?.result
-        }\n\n${finalMessage}\n**Replay: **<${info?.replay}>\n**History: **${
-            info?.history
+            info.rules.spoiler ? `|| ${info.result}||` : info.result
+        }\n\n${finalMessage}\n**Replay: **<${info.replay}>\n**History: **${
+            info.history
         }`;
     }
 
@@ -303,23 +300,19 @@ const sheetsUpdate = async (
             console.error(e);
         });
 
-    if (info?.rules.redirect && league) {
-        league.resultsChannelId = info?.rules.redirect.substring(
+    if (info.rules.redirect && league) {
+        league.resultsChannelId = info.rules.redirect.substring(
             2,
-            info?.rules.redirect.length - 1
+            info.rules.redirect.length - 1
         );
         await discordUpdate(matchJson, message, league);
     } else {
         message.channel.send(
-            `Battle between \`${psPlayer1}\` and \`${psPlayer2}\` is complete and info has been updated!\n**Replay:** ${matchJson.info?.replay}\n**History:** ${matchJson.info?.history}`
+            `Battle between \`${psPlayer1}\` and \`${psPlayer2}\` is complete and info has been updated!\n**Replay:** ${matchJson.info.replay}\n**History:** ${matchJson.info.history}`
         );
     }
 };
-const dlUpdate = async (
-    matchJson: Stats,
-    message: Message,
-    league?: League | null
-) => {
+const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
     let psPlayer1 = matchJson.playerNames[0];
     let psPlayer2 = matchJson.playerNames[1];
     let info = matchJson.info;
@@ -327,7 +320,7 @@ const dlUpdate = async (
     try {
         //Getting league data
         const leagueResponse = await axios.get(
-            `${process.env.DL_API_URL}/league/${league?.dlId}?key=${process.env.DL_API_KEY}`,
+            `${process.env.DL_API_URL}/league/${league.dlId}?key=${process.env.DL_API_KEY}`,
             {
                 headers: { "User-Agent": "PorygonTheBot" },
             }
@@ -338,7 +331,7 @@ const dlUpdate = async (
         //Getting the Discord user player from their Discord ID
         const authorID = message.author.id;
         const playerResponse = await axios.get(
-            `${process.env.DL_API_URL}/league/${league?.dlId}/player/<@${authorID}>?key=${process.env.DL_API_KEY}`,
+            `${process.env.DL_API_URL}/league/${league.dlId}/player/<@${authorID}>?key=${process.env.DL_API_KEY}`,
             {
                 headers: { "User-Agent": "PorygonTheBot" },
             }
@@ -354,23 +347,19 @@ const dlUpdate = async (
             discordUserPS === Object.keys(matchJson.players)[0]
                 ? Object.keys(matchJson.players)[1]
                 : Object.keys(matchJson.players)[0];
-        console.log("Players recieved.");
 
         //Getting the Match ID based on opponent's pokemon
         const matchURL = `${process.env.DL_API_URL}/league/${
-            league?.dlId
+            league.dlId
         }/player/<@${authorID}>?pokemon=${Object.keys(
             matchJson.players[nonDiscordUserPS].kills
         )
             .join(",")
             .replace("’", "")}&key=${process.env.DL_API_KEY}`;
-        console.log(matchURL);
         const matchResponse = await axios.get(matchURL, {
             headers: { "User-Agent": "PorygonTheBot" },
         });
         const matchData = matchResponse.data;
-        console.log("Match recieved.");
-        console.log(matchData);
 
         matchJson.players[discordUserPS].league_id = discordPlayerData.id;
         matchJson.players[nonDiscordUserPS].league_id = matchData.opponent;
@@ -387,28 +376,25 @@ const dlUpdate = async (
             `${process.env.DL_API_URL}/submission?key=${process.env.DL_API_KEY}`,
             final
         );
-        console.log("Submitted");
 
         //Posting to the replay webhook
-        let result = matchJson.info?.result
+        let result = matchJson.info.result
             .toLowerCase()
             .startsWith(discordUserPS)
-            ? matchJson.info?.result.substring(
-                  matchJson.info?.result.length - 3
-              )
-            : `${matchJson.info?.result.substring(
-                  matchJson.info?.result.length - 1
-              )}-${matchJson.info?.result.substring(
-                  matchJson.info?.result.length - 3,
-                  matchJson.info?.result.length - 2
+            ? matchJson.info.result.substring(matchJson.info.result.length - 3)
+            : `${matchJson.info.result.substring(
+                  matchJson.info.result.length - 1
+              )}-${matchJson.info.result.substring(
+                  matchJson.info.result.length - 3,
+                  matchJson.info.result.length - 2
               )}`;
         await axios.post(leagueData.replay_webhook, {
-            content: `A match in the ${leagueData.league_name} between the ${discordPlayerData.team_name} and the ${matchData.opponent_team_name} has just been submitted by Porygon Automatic Import.\nReplay: <${matchJson.info?.replay}>\nResult: ||${result}||`,
+            content: `A match in the ${leagueData.league_name} between the ${discordPlayerData.team_name} and the ${matchData.opponent_team_name} has just been submitted by Porygon Automatic Import.\nReplay: <${matchJson.info.replay}>\nResult: ||${result}||`,
         });
-        if (info?.rules.redirect) {
-            league!.resultsChannelId = info?.rules.redirect.substring(
+        if (info.rules.redirect) {
+            league!.resultsChannelId = info.rules.redirect.substring(
                 2,
-                info?.rules.redirect.length - 1
+                info.rules.redirect.length - 1
             );
             league!.system = "C";
             discordUpdate(matchJson, message, league);
@@ -420,7 +406,7 @@ const dlUpdate = async (
     } catch (e) {
         await message.channel.send(
             `:x: Error with match number \`${
-                matchJson.info?.battleId
+                matchJson.info.battleId
             }\`. I will be unable to analyze this match until you screenshot this message and send it to the Porygon server's bugs-and-help channel and ping harbar20 in the same channel.\n\n**Error:**\`\`\`${JSON.stringify(
                 e.response.data
             )}\nLine number: ${
