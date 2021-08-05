@@ -399,7 +399,7 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
                 info.rules.redirect.length - 1
             );
             league.system = "C";
-            league.resultsChannelId = info.rules.redirect;
+            league.resultsChannelId = info.rules.redirect.substring(2, info.rules.redirect.length - 1);
             discordUpdate(matchJson, message, league);
         } else {
             await message.channel.send(
