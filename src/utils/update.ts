@@ -426,11 +426,16 @@ const update = async (matchJson: Stats, message: Message) => {
     const league = await Prisma.getLeague(message.channel.id);
     let system = league?.system;
 
-    if (league) {
-        if (system === "S") await sheetsUpdate(matchJson, message, league);
-        else if (system === "DL") await dlUpdate(matchJson, message, league);
-        else await discordUpdate(matchJson, message, league);
-    } else await discordUpdate(matchJson, message, league);
+    try {
+        if (league) {
+            if (system === "S") await sheetsUpdate(matchJson, message, league);
+            else if (system === "DL") await dlUpdate(matchJson, message, league);
+            else await discordUpdate(matchJson, message, league);
+        } else await discordUpdate(matchJson, message, league);
+    }
+    catch (e) {
+        return await message.reply(`There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\``);
+    }
 };
 
 export default update;
