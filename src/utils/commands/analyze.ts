@@ -27,6 +27,9 @@ export default {
 			const matchJson = await replayer.track(data);
 
 			await update(matchJson, message)
+			await message.channel.send(
+				`Battle between \`${matchJson.playerNames[0]}\` and \`${matchJson.playerNames[1]}\` is complete and info has been updated!`
+			);
 			console.log(`${link} has been analyzed!`);
 		}
 	},
