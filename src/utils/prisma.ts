@@ -38,6 +38,16 @@ class Prisma {
         });
     }
 
+    static async leagueWhere(prop: string, value: string) {
+        let obj = {} as {[key: string]: string};
+        obj[prop] = value;
+        const leagues = await prisma.league.findMany({
+            where: obj
+        });
+
+        return leagues;
+    }
+
     static async getLeague(channelId: string) {
         const league = await prisma.league.findUnique({
             where: {
