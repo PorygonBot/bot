@@ -43,6 +43,12 @@ const sockets: { [key: string]: Socket } = {
         ip: 'sim.radicalred.net:8000',
         server: 'ws://sim.radicalred.net:8000/showdown/websocket',
     },
+    fantasy: {
+        name: "Fantasy",
+        link: 'http://fantasyclient.herokuapp.com/',
+        ip: 'fantasy-showdown.herokuapp.com:8000',
+        server: 'ws://fantasy-showdown.herokuapp.com:8000/showdown/websocket'
+    }
 };
 
 export default sockets;
