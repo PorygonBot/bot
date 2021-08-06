@@ -243,7 +243,7 @@ const discordUpdate = async (
         else finalMessage = message1;
     } else {
         if (info.rules.spoiler)
-            finalMessage = `||**${psPlayer1}**: \n${message1}|| \n||**${psPlayer2}**: \n${message2}||`;
+            finalMessage = `**${psPlayer1}**: ||\n${message1}|| \n**${psPlayer2}**: ||\n${message2}||`;
         else
             finalMessage = `**${psPlayer1}**: \n${message1} \n**${psPlayer2}**: \n${message2}`;
     }
