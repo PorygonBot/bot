@@ -328,7 +328,6 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
             }
         );
         const leagueData = leagueResponse.data;
-        console.log("League recieved.");
 
         //Getting the Discord user player from their Discord ID
         const authorID = message.author.id;
@@ -371,6 +370,7 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
             ...matchData,
             discord_user: discordUserPS,
             headers: { "User-Agent": "PorygonTheBot" },
+            league_id: league.dlId,
         };
 
         //Making the submission
@@ -407,16 +407,8 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
             );
         }
     } catch (e) {
-        await message.channel.send(
-            `:x: Error with match number \`${
-                matchJson.info.battleId
-            }\`. I will be unable to analyze this match until you screenshot this message and send it to the Porygon server's bugs-and-help channel and ping harbar20 in the same channel.\n\n**Error:**\`\`\`${JSON.stringify(
-                e.response.data
-            )}\nLine number: ${
-                e.stack.split(":")[2]
-            }\`\`\`\nPlease paste these stats instead: `
-        );
         console.error(e);
+        await message.reply(`There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\`\n Use these stats instead.`);
         //Send the stats
         league.system = "D";
         discordUpdate(matchJson, message, league);
@@ -434,6 +426,7 @@ const update = async (matchJson: Stats, message: Message) => {
         } else await discordUpdate(matchJson, message, league);
     }
     catch (e) {
+        console.error(e);
         return await message.reply(`There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\``);
     }
 };
