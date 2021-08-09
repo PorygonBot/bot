@@ -11,7 +11,7 @@ import pingCommand from "./ping";
 import renameCommand from "./rename";
 import ruleCommand from "./rule";
 import rulesCommand from "./rules";
-import startTrackCommand from "./rules";
+import startTrackCommand from "./start-track";
 import triAttackCommand from "./tri-attack";
 
 //Aggregating all the commands
