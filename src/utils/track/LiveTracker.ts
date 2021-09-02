@@ -366,7 +366,7 @@ class ReplayTracker {
                                     },
                                     responseType: "text",
                                 }
-                            );
+                            ).catch((e) => console.error(e));
 
                             //Setting up the final object for returning
                             const player1 = battle.p1;

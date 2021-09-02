@@ -1,10 +1,7 @@
 // Importing required modules
 import * as dotenv from "dotenv";
 import axios from "axios";
-import querystring from "querystring";
-import WebSocket from "ws";
-import readdirSync from "fs";
-import { Collection, Message, WSEventType } from "discord.js";
+import { Message, WSEventType } from "discord.js";
 import {
     client,
     Prisma,
@@ -13,7 +10,7 @@ import {
     sockets,
     commands,
 } from "./utils";
-import { Battle, Socket, Stats } from "./types";
+import { Battle } from "./types";
 // Setting things up
 dotenv.config();
 
@@ -123,7 +120,7 @@ client.on("message", async (message: Message) => {
 
             if (Battle.battles.includes(battleId)) {
                 return channel.send(
-                    `:x: I'm already tracking this battle. If you think this is incorrect, send a replay of this match in the #bugs-and-help channel in the Porygon server.`
+                    `:x: I'm already tracking this battle (${battleId}). If you think this is incorrect, send a replay of this match in the #bugs-and-help channel in the Porygon server.`
                 );
             }
 
@@ -154,6 +151,7 @@ client.on("message", async (message: Message) => {
                         .catch((e) => console.error(e));
 
                 Battle.incrementBattles(battleId);
+                console.log(Battle.battles)
                 client.user!.setActivity(
                     `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
                     {
