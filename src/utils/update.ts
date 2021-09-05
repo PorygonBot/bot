@@ -9,8 +9,11 @@ import axios from "axios";
 //Message Generators
 const genMessage = (matchJson: { [key: string]: any }) => {
     //retrieving info from the json object
-    let psPlayer1 = Object.keys(matchJson.players)[0];
-    let psPlayer2 = Object.keys(matchJson.players)[1];
+    let psPlayer1 = matchJson.playerNames[0];
+    let psPlayer2 = matchJson.playerNames[1];
+    console.log(matchJson);
+    console.log(matchJson.players);
+    console.log(psPlayer1);
     let killJson1 = matchJson.players[psPlayer1].kills;
     let deathJson1 = matchJson.players[psPlayer1].deaths;
     let killJson2 = matchJson.players[psPlayer2].kills;
@@ -47,8 +50,8 @@ const genMessage = (matchJson: { [key: string]: any }) => {
 };
 const genCSV = (matchJson: { [key: string]: any }) => {
     //retrieving info from the json object
-    let psPlayer1 = Object.keys(matchJson.players)[0];
-    let psPlayer2 = Object.keys(matchJson.players)[1];
+    let psPlayer1 = matchJson.playerNames[0];
+    let psPlayer2 = matchJson.playerNames[1];
     let killJson1 = matchJson.players[psPlayer1].kills;
     let deathJson1 = matchJson.players[psPlayer1].deaths;
     let killJson2 = matchJson.players[psPlayer2].kills;
@@ -85,8 +88,8 @@ const genCSV = (matchJson: { [key: string]: any }) => {
 };
 const genTour = (matchJson: { [key: string]: any }) => {
     //retrieving info from the json object
-    let psPlayer1 = Object.keys(matchJson.players)[0];
-    let psPlayer2 = Object.keys(matchJson.players)[1];
+    let psPlayer1 = matchJson.playerNames[0];
+    let psPlayer2 = matchJson.playerNames[1];
     let killJson1 = matchJson.players[psPlayer1].kills;
     let deathJson1 = matchJson.players[psPlayer1].deaths;
     let killJson2 = matchJson.players[psPlayer2].kills;
@@ -122,8 +125,8 @@ const genTour = (matchJson: { [key: string]: any }) => {
 };
 const genSheets = (matchJson: { [key: string]: any }) => {
     //retrieving info from the json object
-    let psPlayer1 = Object.keys(matchJson.players)[0];
-    let psPlayer2 = Object.keys(matchJson.players)[1];
+    let psPlayer1 = matchJson.playerNames[0];
+    let psPlayer2 = matchJson.playerNames[1];
     let killJson1 = matchJson.players[psPlayer1].kills;
     let deathJson1 = matchJson.players[psPlayer1].deaths;
     let killJson2 = matchJson.players[psPlayer2].kills;
@@ -219,7 +222,7 @@ const discordUpdate = async (
     league: League | null
 ) => {
     let info = matchJson.info;
-    let system = league?.system || 'D';
+    let system = league?.system || "D";
     let channelId = league?.resultsChannelId;
 
     let messages = [];
@@ -306,7 +309,10 @@ const sheetsUpdate = async (
             info.rules.redirect.length - 1
         );
         league.system = "C";
-        league.resultsChannelId = info.rules.redirect.substring(2, info.rules.redirect.length - 1);
+        league.resultsChannelId = info.rules.redirect.substring(
+            2,
+            info.rules.redirect.length - 1
+        );
         await discordUpdate(matchJson, message, league);
     } else {
         message.channel.send(
@@ -399,16 +405,21 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
                 info.rules.redirect.length - 1
             );
             league.system = "C";
-            league.resultsChannelId = info.rules.redirect.substring(2, info.rules.redirect.length - 1);
+            league.resultsChannelId = info.rules.redirect.substring(
+                2,
+                info.rules.redirect.length - 1
+            );
             discordUpdate(matchJson, message, league);
         } else {
             await message.channel.send(
                 `Battle between \`${psPlayer1}\` and \`${psPlayer2}\` is complete and info has been updated!`
             );
         }
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
-        await message.reply(`There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\`\n Use these stats instead.`);
+        await message.reply(
+            `There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\`\n Use these stats instead.`
+        );
         //Send the stats
         league.system = "D";
         discordUpdate(matchJson, message, league);
@@ -418,16 +429,20 @@ const update = async (matchJson: Stats, message: Message) => {
     const league = await Prisma.getLeague(message.channel.id);
     let system = league?.system;
 
+    if (matchJson.error) return await message.reply(matchJson.error);
+
     try {
         if (league) {
             if (system === "S") await sheetsUpdate(matchJson, message, league);
-            else if (system === "DL") await dlUpdate(matchJson, message, league);
+            else if (system === "DL")
+                await dlUpdate(matchJson, message, league);
             else await discordUpdate(matchJson, message, league);
         } else await discordUpdate(matchJson, message, league);
-    }
-    catch (e) {
+    } catch (e: any) {
         console.error(e);
-        return await message.reply(`There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\``);
+        return await message.reply(
+            `There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\``
+        );
     }
 };
 
