@@ -11,9 +11,6 @@ const genMessage = (matchJson: { [key: string]: any }) => {
     //retrieving info from the json object
     let psPlayer1 = matchJson.playerNames[0];
     let psPlayer2 = matchJson.playerNames[1];
-    console.log(matchJson);
-    console.log(matchJson.players);
-    console.log(psPlayer1);
     let killJson1 = matchJson.players[psPlayer1].kills;
     let deathJson1 = matchJson.players[psPlayer1].deaths;
     let killJson2 = matchJson.players[psPlayer2].kills;
