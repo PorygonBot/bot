@@ -386,13 +386,13 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
         let result = matchJson.info.result
             .toLowerCase()
             .startsWith(discordUserPS)
-            ? matchJson.info.result.substring(matchJson.info.result.length - 3)
-            : `${matchJson.info.result.substring(
+            ? `${matchJson.info.result.substring(
                   matchJson.info.result.length - 1
               )}-${matchJson.info.result.substring(
                   matchJson.info.result.length - 3,
                   matchJson.info.result.length - 2
-              )}`;
+              )}`
+            : matchJson.info.result.substring(matchJson.info.result.length - 3);
         await axios.post(leagueData.replay_webhook, {
             content: `A match in the ${leagueData.league_name} between the ${discordPlayerData.team_name} and the ${matchData.opponent_team_name} has just been submitted by Porygon Automatic Import.\nReplay: <${matchJson.info.replay}>\nResult: ||${result}||`,
         });
