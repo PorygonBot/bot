@@ -2,7 +2,7 @@ import axios from "axios";
 import querystring from "querystring";
 import { Message, MessageEmbed, Client } from "discord.js";
 
-import { Prisma } from "..";
+import { Prisma } from "../utils";
 
 export default {
     name: "mode",

@@ -1,8 +1,7 @@
 import { Message, Client } from "discord.js";
 import axios from 'axios';
-import { Prisma, update } from "..";
-import { ReplayTracker } from '../track'
-import { Command } from "../../types";
+import { Prisma, update, ReplayTracker } from "../utils";
+import { Command } from "../types";
 
 export default {
 	name: "analyze",

@@ -1,5 +1,5 @@
 import { Message, Client } from "discord.js";
-import { Command } from "../../types";
+import { Command } from "../types";
 
 export default {
     name: "conversion",

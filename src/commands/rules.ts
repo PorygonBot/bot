@@ -1,6 +1,6 @@
 import { Message, MessageEmbed, Client } from "discord.js";
-import { Rules } from "../../types";
-import Prisma from "../prisma";
+import { Rules } from "../types";
+import { Prisma } from "../utils";
 
 export default {
     name: "rules",

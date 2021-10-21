@@ -1,5 +1,5 @@
 import { Message, Client, Collection } from "discord.js";
-import { Command } from "../../types";
+import { Command } from "../types";
 
 export default {
     name: "end-track",

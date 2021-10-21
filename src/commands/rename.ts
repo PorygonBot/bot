@@ -1,6 +1,6 @@
 import { Message, Client } from "discord.js";
 
-import { Prisma } from "..";
+import { Prisma } from "../utils";
 
 export default {
     name: "rename",

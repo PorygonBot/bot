@@ -3,7 +3,7 @@ import Prisma from './prisma';
 import sockets from './sockets';
 import { update, slashAnalyzeUpdate } from './update'
 import { funcs, consts, ReplayTracker, LiveTracker } from './track';
-import {commands, commandsArr} from './commands';
+import {commands, commandsArr} from '../commands';
 
 export {
     client,

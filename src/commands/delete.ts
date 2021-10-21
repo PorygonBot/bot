@@ -1,6 +1,6 @@
 import { Message, Client } from "discord.js";
-import { Prisma } from "..";
-import { Command } from "../../types";
+import { Prisma } from "../utils";
+import { Command } from "../types";
 
 export default {
     name: "delete",

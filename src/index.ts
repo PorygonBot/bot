@@ -11,7 +11,7 @@ import {
     commands,
     slashAnalyzeUpdate,
 } from "./utils";
-import { Battle, Stats } from "./types";
+import { Battle, Command, Stats } from "./types";
 // Setting things up
 dotenv.config();
 
@@ -188,7 +188,7 @@ const messageFunction = async (message: Message) => {
         const command =
             commands.get(commandName) ||
             commands.find(
-                (cmd) =>
+                (cmd: Command) =>
                     (cmd.aliases &&
                         cmd.aliases.includes(commandName)) as boolean
             );
