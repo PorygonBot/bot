@@ -18,7 +18,7 @@ export default {
             })) as Collection<string, Message>;
 
         //Creating the array of messages between the start and end of tracking
-        let messages = messagesList.array();
+        let messages = messagesList.map(collection => collection);
         let msgs = [];
         for (const msg of messages) {
             if (msg.content === "Tracking now!") break;
@@ -30,7 +30,7 @@ export default {
         msgs = msgs.reverse();
         let sentData: { [key: string]: string } = {};
         for (const msg of msgs) {
-            const reactions = msg.reactions.cache.array();
+            const reactions = msg.reactions.cache.map(collection => collection);
 
             sentData[msg.content] = "";
 

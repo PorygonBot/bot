@@ -13,23 +13,25 @@ export default {
         if (league) {
             //Asking for confirmation
             const filter = (m: Message) => m.author === message.author;
-            const collector = channel.createMessageCollector(filter, {
+            let collector = channel.createMessageCollector({
+                filter,
                 max: 1,
             });
             await channel.send(
                 `Are you sure you want to delete \`${league.name}\` from the database? All your custom rules and modes will be deleted and cannot be undone (respond with "yes").`
             );
-            collector.on("collect", async (m) => {
-                if (m.content.toLowerCase() === "yes" && m.author === message.author) {
-                    /* Deleting the rules record first. */
-                    await Prisma.deleteLeague(channel.id);
+            collector.on("end", async (collected, reason) => {
+                // if (m.content.toLowerCase() === "yes" && m.author === message.author) {
+                //     /* Deleting the rules record first. */
+                //     await Prisma.deleteLeague(channel.id);
 
-                    return await channel.send(
-                        `\`${league.name}\`'s records have been deleted from the Porygon database permanently.`
-                    );
-				} else {
-					return await channel.send("Command ignored. If you'd still like to delete this league, run the command again.")
-				}
+                //     return await channel.send(
+                //         `\`${league.name}\`'s records have been deleted from the Porygon database permanently.`
+                //     );
+				// } else {
+				// 	return await channel.send("Command ignored. If you'd still like to delete this league, run the command again.")
+				// }
+                console.log(collected);
             });
 		} else {
 			return await channel.send(':x: There is no valid league in this channel.')

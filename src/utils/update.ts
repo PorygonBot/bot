@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import { League } from "@prisma/client";
-import { Message } from "discord.js";
+import { Message, CommandInteraction } from "discord.js";
 import { Stats } from "../types";
 import Prisma from "./prisma";
 import { funcs } from "./track";
@@ -442,5 +442,47 @@ const update = async (matchJson: Stats, message: Message) => {
         );
     }
 };
+const slashAnalyzeUpdate = async (
+    matchJson: Stats,
+    interaction: CommandInteraction
+) => {
+    let info = matchJson.info;
 
-export default update;
+    let messages = [];
+    if (info.rules?.format === "CSV") messages = genCSV(matchJson);
+    else if (info.rules?.format === "SPACE") messages = genSheets(matchJson);
+    else if (info.rules?.format === "TOUR") messages = genTour(matchJson);
+    else messages = genMessage(matchJson);
+
+    console.log(matchJson);
+
+    let psPlayer1 = matchJson.playerNames[0];
+    let psPlayer2 = matchJson.playerNames[1];
+    let message1 = messages[0];
+    let message2 = messages[1];
+
+    let finalMessage = "";
+
+    //finally sending players the info
+    if (info.rules.format === "Tour") {
+        if (info.rules.spoiler) finalMessage = `||${message1}||`;
+        else finalMessage = message1;
+    } else {
+        if (info.rules.spoiler)
+            finalMessage = `**${psPlayer1}**: ||\n${message1}|| \n**${psPlayer2}**: ||\n${message2}||`;
+        else
+            finalMessage = `**${psPlayer1}**: \n${message1} \n**${psPlayer2}**: \n${message2}`;
+    }
+
+    if (info.rules.tb) {
+        finalMessage = `**Result:** ${
+            info.rules.spoiler ? `|| ${info.result}||` : info.result
+        }\n\n${finalMessage}\n**Replay: **<${info.replay}>\n**History: **${
+            info.history
+        }`;
+    }
+
+    interaction.reply(finalMessage);
+};
+
+export { update, slashAnalyzeUpdate };

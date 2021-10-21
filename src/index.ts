@@ -1,7 +1,7 @@
 // Importing required modules
 import * as dotenv from "dotenv";
 import axios from "axios";
-import { Message, WSEventType } from "discord.js";
+import { CommandInteraction, Message } from "discord.js";
 import {
     client,
     Prisma,
@@ -9,8 +9,9 @@ import {
     LiveTracker,
     sockets,
     commands,
+    slashAnalyzeUpdate,
 } from "./utils";
-import { Battle } from "./types";
+import { Battle, Stats } from "./types";
 // Setting things up
 dotenv.config();
 
@@ -43,9 +44,11 @@ client.on("guildDelete", () => {
     );
 });
 
-//Websocket for listening for interactions for slash commands
-client.ws.on("INTERACTION_CREATE" as WSEventType, async (interaction) => {
-    let link = interaction.data.options[0].value + ".log";
+client.on("interactionCreate", async (interaction) => {
+    if (!interaction.isCommand()) return;
+
+    let valueLink = interaction.options.data[0].value as string
+    let link = valueLink + ".log";
     let response = await axios
         .get(link, {
             headers: { "User-Agent": "PorygonTheBot" },
@@ -54,29 +57,27 @@ client.ws.on("INTERACTION_CREATE" as WSEventType, async (interaction) => {
     let data = response?.data;
 
     //Getting the rules
-    let rules = await Prisma.getRules(interaction.channel.id);
+    let rules = await Prisma.getRules(interaction.channelId);
     rules.isSlash = true;
 
-    const messagePlaceholder = {
-        channel: {
-            async send(message: Message) {
-                return message;
-            },
-        },
-    };
-    let replayer = new ReplayTracker(interaction.data.options[0].value, rules);
-    await replayer.track(data);
+    let replayer = new ReplayTracker(valueLink, rules);
+    const matchJson = await replayer.track(data);
+
+    await slashAnalyzeUpdate(matchJson, interaction)
+    // await message.channel.send(
+    //     `Battle between \`${matchJson.playerNames[0]}\` and \`${matchJson.playerNames[1]}\` is complete and info has been updated!`
+    // );
     console.log(`${link} has been analyzed!`);
 });
 
 //When a message is sent at any time
-client.on("message", async (message: Message) => {
+const messageFunction = async (message: Message) => {
     const channel = message.channel;
     const msgStr = message.content;
     const prefix = "porygon, use ";
 
     //If it's a DM, analyze the replay
-    if (channel.type === "dm") {
+    if (channel.type === "DM") {
         if (
             msgStr.includes("replay.pokemonshowdown.com") &&
             message.author.id !== client.user!.id
@@ -119,9 +120,11 @@ client.on("message", async (message: Message) => {
             let battleId = battlelink && battlelink.split("/")[3];
 
             if (Battle.battles.includes(battleId)) {
-                return channel.send(
+                await channel.send(
                     `:x: I'm already tracking this battle (${battleId}). If you think this is incorrect, send a replay of this match in the #bugs-and-help channel in the Porygon server.`
                 );
+
+                return;
             }
 
             if (
@@ -137,9 +140,11 @@ client.on("message", async (message: Message) => {
                     battlelink.startsWith(socket.link)
                 )[0];
                 if (!server) {
-                    return channel.send(
+                    await channel.send(
                         "This link is not a valid Pokemon Showdown battle url."
                     );
+
+                    return;
                 }
 
                 //Getting the rules
@@ -148,10 +153,10 @@ client.on("message", async (message: Message) => {
                 if (!rules.notalk)
                     await channel
                         .send("Joining the battle...")
-                        .catch((e) => console.error(e));
+                        .catch((e: Error) => console.error(e));
 
                 Battle.incrementBattles(battleId);
-                console.log(Battle.battles)
+                console.log(Battle.battles);
                 client.user!.setActivity(
                     `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
                     {
@@ -192,12 +197,15 @@ client.on("message", async (message: Message) => {
         //Running the command
         try {
             await command.execute(message, args, client);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            message.reply(`There was an error trying to execute that command!\n\n\`\`\`${error.stack}\`\`\``);
+            message.reply(
+                `There was an error trying to execute that command!\n\n\`\`\`${error.stack}\`\`\``
+            );
         }
     }
-});
+}
+client.on("messageCreate", messageFunction);
 
 // Log the client in.
 client.login(process.env.TOKEN);

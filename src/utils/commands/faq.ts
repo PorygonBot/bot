@@ -41,7 +41,7 @@ export default {
                 "Join the porygon server (https://discord.gg/ZPTMZ8f) and report your issue!"
             );
 
-        return message.channel.send(faqEmbed).catch((e) => {
+        return message.channel.send({ embeds: [faqEmbed] }).catch((e) => {
             message.channel.send(
                 ":x: You need to enable embeds in this channel to use this command."
             );

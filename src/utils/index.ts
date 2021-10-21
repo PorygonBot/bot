@@ -1,7 +1,7 @@
 import client from './client';
 import Prisma from './prisma';
 import sockets from './sockets';
-import update from './update'
+import { update, slashAnalyzeUpdate } from './update'
 import { funcs, consts, ReplayTracker, LiveTracker } from './track';
 import {commands, commandsArr} from './commands';
 
@@ -14,6 +14,7 @@ export {
     LiveTracker,
     sockets,
     update,
+    slashAnalyzeUpdate,
     commands,
     commandsArr
 };

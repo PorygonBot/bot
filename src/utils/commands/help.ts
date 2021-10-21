@@ -32,7 +32,7 @@ export default {
             );
         }
 
-        return message.channel.send(helpEmbed).catch((e) => {
+        return message.channel.send({ embeds: [helpEmbed] }).catch((e) => {
             message.channel.send(
                 ":x: You need to enable embeds in this channel to use this command."
             );

@@ -11,7 +11,7 @@ export default {
         const channel = message.channel;
 
         //Checking if user is able to change rules
-        if (message.member && !message.member.hasPermission("MANAGE_ROLES")) {
+        if (message.member && !message.member.permissions.has("MANAGE_ROLES")) {
             return channel.send(
                 ":x: You're not a moderator. Ask a moderator to add this person for you."
             );
@@ -93,7 +93,7 @@ export default {
             .filter((arg) => arg.includes("-"))
             .map((arg) => arg.substring(1, arg.length));
         if (!ruleKeyArgs.length) {
-            return channel.send(ruleEmbed);
+            return channel.send({ embeds: [ruleEmbed] });
         }
 
         //Setting the new rules

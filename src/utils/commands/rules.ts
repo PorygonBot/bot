@@ -26,16 +26,16 @@ export default {
             .addField("Ability/Item", rules.abilityitem)
             .addField("Self/Team", rules.selfteam)
             .addField("Destiny Bond", rules.db)
-            .addField("Spoiler", rules.spoiler)
+            .addField("Spoiler", rules.spoiler.toString())
             .addField("Ping", rules.ping || "None")
             .addField("Forfeit", rules.forfeit)
             .addField("Format", rules.format)
-            .addField("Quirks", rules.quirks)
-            .addField("No Talk", rules.notalk)
-            .addField("Tidbits", rules.tb)
-            .addField("Combine P/D", rules.combine)
+            .addField("Quirks", rules.quirks.toString())
+            .addField("No Talk", rules.notalk.toString())
+            .addField("Tidbits", rules.tb.toString())
+            .addField("Combine P/D", rules.combine.toString())
             .addField("Redirect Channel", rules.redirect || "None");
 
-        return channel.send(rulesEmbed);
+        return channel.send({ embeds: [rulesEmbed] });
     },
 };

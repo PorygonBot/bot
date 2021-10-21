@@ -13,7 +13,7 @@ export default {
         const channel = message.channel;
         const author = message.author;
 
-        if (message.member && !message.member.hasPermission("MANAGE_ROLES")) {
+        if (message.member && !message.member.permissions.has("MANAGE_ROLES")) {
             return channel.send(
                 ":x: You're not a moderator. Ask a moderator to set the mode of this league for you."
             );
@@ -115,7 +115,7 @@ export default {
                         "-dl",
                         "Updates draft-league.nl page with the stats automatically. Click [here](https://discord.com/channels/685139768840945674/734963749966053376/819300373143486475) for more info."
                     );
-                return message.channel.send(modeEmbed).catch((e) => {
+                return message.channel.send({ embeds: [modeEmbed] }).catch((e) => {
                     message.channel.send(
                         ":x: You need to enable embeds in this channel to use this command."
                     );
@@ -159,40 +159,42 @@ export default {
         } else {
             // Message Collector for the required info for the client
             const filter = (m: Message) => m.author === message.author;
-            const collector = message.channel.createMessageCollector(filter, {
-                max: 3,
+            const collector = message.channel.createMessageCollector({
+                filter,
+                max: 1,
             });
 
             await channel.send(
                 "What is this league's name? [the whole of your next message will be taken as the league's name]"
             );
-            collector.on("collect", async (m) => {
-                let leagueName = m.content;
-                await Prisma.upsertLeague({
-                    channelId: channel.id,
-                    system: mode,
-                    leagueName: leagueName,
-                    guildId: message.guild?.id,
-                    resultsChannelId: streamChannel,
-                    dlId: dlID,
-                    sheetId: sheetsID,
-                });
-                collector.stop();
+            collector.on("end", async (collected, reason) => {
+                // let leagueName = m.content;
+                // await Prisma.upsertLeague({
+                //     channelId: channel.id,
+                //     system: mode,
+                //     leagueName: leagueName,
+                //     guildId: message.guild?.id,
+                //     resultsChannelId: streamChannel,
+                //     dlId: dlID,
+                //     sheetId: sheetsID,
+                // });
+                // collector.stop();
 
-                console.log(
-                    `${leagueName}'s mode has been changed to ${
-                        modes[mode] || "Default"
-                    } mode!`
-                );
-                return channel.send(
-                    `\`${leagueName}\`'s mode has been changed to ${
-                        modes[mode] || "Default"
-                    } mode! ${
-                        modes[mode] === "Sheets"
-                            ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
-                            : ""
-                    }`
-                );
+                // console.log(
+                //     `${leagueName}'s mode has been changed to ${
+                //         modes[mode] || "Default"
+                //     } mode!`
+                // );
+                // return channel.send(
+                //     `\`${leagueName}\`'s mode has been changed to ${
+                //         modes[mode] || "Default"
+                //     } mode! ${
+                //         modes[mode] === "Sheets"
+                //             ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
+                //             : ""
+                //     }`
+                // );
+                console.log(collected);
             });
         }
     },
