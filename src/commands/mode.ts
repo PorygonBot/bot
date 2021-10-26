@@ -3,6 +3,10 @@ import querystring from "querystring";
 import { Message, MessageEmbed, Client } from "discord.js";
 
 import { Prisma } from "../utils";
+import {
+    collapseTextChangeRangesAcrossMultipleVersions,
+    isReturnStatement,
+} from "typescript";
 
 export default {
     name: "mode",
@@ -102,37 +106,94 @@ export default {
                 );
                 collector.on("collect", async (m: Message) => {
                     if (m.content.includes("end")) {
-                        await channel.send("All roles have been registered!");
-                        
-                        const modes = {
-                            D: "Default",
-                            C: "Channel",
-                            DM: "DM",
-                            S: "Sheets",
-                            DL: "DL",
-                            R: "Roles",
-                            "": "Default",
-                        };
-                
-                        let league = await Prisma.getLeague(channel.id);
-                        if (league) {
+                        collector.stop();
+                        return;
+                    }
+                    const role = m.content.split(" ")[0];
+                    const roleChannel = m.content.split(" ")[1];
+                    if (!(role || roleChannel)) {
+                        return;
+                    }
+                    const roleId = role.match(/(\d+)/)![0];
+                    const roleChannelId = roleChannel.match(/(\d+)/)![0];
+
+                    rolesChannels[roleId] = roleChannelId;
+
+                    await channel.send("Registered.");
+                });
+
+                collector.on("end", async (collected, reason) => {
+                    await channel.send("All roles have been registered!");
+
+                    const modes = {
+                        D: "Default",
+                        C: "Channel",
+                        DM: "DM",
+                        S: "Sheets",
+                        DL: "DL",
+                        R: "Roles",
+                        "": "Default",
+                    };
+
+                    let league = await Prisma.getLeague(channel.id);
+                    if (league) {
+                        await Prisma.upsertLeague({
+                            channelId: channel.id,
+                            system: mode,
+                            guildId: message.guild?.id,
+                            resultsChannelId: streamChannel,
+                            dlId: dlID,
+                            sheetId: sheetsID,
+                            rolesChannels: rolesChannels,
+                        });
+
+                        console.log(
+                            `${league.name}'s mode has been changed to ${
+                                modes[mode] || "Default"
+                            } mode!`
+                        );
+                        await channel.send(
+                            `\`${league.name}\`'s mode has been changed to ${
+                                modes[mode] || "Default"
+                            } mode! ${
+                                modes[mode] === "Sheets"
+                                    ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
+                                    : ""
+                            }`
+                        );
+                    } else {
+                        // Message Collector for the required info for the client
+                        const filter = (m: Message) =>
+                            m.author === message.author;
+                        const collector =
+                            message.channel.createMessageCollector({
+                                filter,
+                                max: 1,
+                            });
+
+                        await channel.send(
+                            "What is this league's name? [the whole of your next message will be taken as the league's name]"
+                        );
+                        collector.on("collect", async (m: Message) => {
+                            let leagueName = m.content;
                             await Prisma.upsertLeague({
                                 channelId: channel.id,
                                 system: mode,
+                                leagueName: leagueName,
                                 guildId: message.guild?.id,
                                 resultsChannelId: streamChannel,
                                 dlId: dlID,
                                 sheetId: sheetsID,
-                                rolesChannels: rolesChannels
                             });
-                
+                            collector.stop();
+
                             console.log(
-                                `${league.name}'s mode has been changed to ${
+                                `${leagueName}'s mode has been changed to ${
                                     modes[mode] || "Default"
                                 } mode!`
                             );
-                            await channel.send(
-                                `\`${league.name}\`'s mode has been changed to ${
+                            channel.send(
+                                `\`${leagueName}\`'s mode has been changed to ${
                                     modes[mode] || "Default"
                                 } mode! ${
                                     modes[mode] === "Sheets"
@@ -140,58 +201,10 @@ export default {
                                         : ""
                                 }`
                             );
-                        } else {
-                            // Message Collector for the required info for the client
-                            const filter = (m: Message) => m.author === message.author;
-                            const collector = message.channel.createMessageCollector({
-                                filter,
-                                max: 1,
-                            });
-                
-                            await channel.send(
-                                "What is this league's name? [the whole of your next message will be taken as the league's name]"
-                            );
-                            collector.on("collect", async (m: Message) => {
-                                let leagueName = m.content;
-                                await Prisma.upsertLeague({
-                                    channelId: channel.id,
-                                    system: mode,
-                                    leagueName: leagueName,
-                                    guildId: message.guild?.id,
-                                    resultsChannelId: streamChannel,
-                                    dlId: dlID,
-                                    sheetId: sheetsID,
-                                });
-                                collector.stop();
-                
-                                console.log(
-                                    `${leagueName}'s mode has been changed to ${
-                                        modes[mode] || "Default"
-                                    } mode!`
-                                );
-                                channel.send(
-                                    `\`${leagueName}\`'s mode has been changed to ${
-                                        modes[mode] || "Default"
-                                    } mode! ${
-                                        modes[mode] === "Sheets"
-                                            ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
-                                            : ""
-                                    }`
-                                );
-                            });
-                        }
 
-                        return;
+                            return;
+                        });
                     }
-                    const role = m.content.split(" ")[0];
-                    const roleChannel = m.content.split(" ")[1];
-                    const roleId = role.match(/(\d+)/)![0];
-                    const roleChannelId = roleChannel.match(/(\d+)/)![0];
-
-                    rolesChannels[roleId] = roleChannelId;
-                    // This uses message.member.roles.cache.has()
-
-                    await channel.send("Registered.");
                 });
 
                 break;

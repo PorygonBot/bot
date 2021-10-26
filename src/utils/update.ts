@@ -486,7 +486,6 @@ const roleUpdate = async (
 
                 if (channelId && message.guild) {
                     const channel = funcs.getChannel(message.guild, channelId);
-                    console.log(channel);
                     if (channel?.isText())
                         //Checking if it's a text channel instead of a voice channel
                         channel?.send(finalMessage);
