@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import { League } from "@prisma/client";
-import { Message, CommandInteraction } from "discord.js";
+import { Message, CommandInteraction, Collection } from "discord.js";
 import { Stats } from "../types";
 import Prisma from "./prisma";
 import { funcs } from "./track";
@@ -429,6 +429,81 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
         discordUpdate(matchJson, message, league);
     }
 };
+const roleUpdate = async (
+    matchJson: Stats,
+    message: Message,
+    league: League
+) => {
+    let info = matchJson.info;
+
+    try {
+        message.member?.roles.cache.forEach((role) => {
+            if (
+                league.rolesChannels &&
+                Object.keys(
+                    JSON.parse(JSON.stringify(league.rolesChannels))
+                ).includes(role.id)
+            ) {
+                const channelId = JSON.parse(
+                    JSON.stringify(league.rolesChannels)
+                )[role.id];
+
+                let messages = [];
+                if (info.rules?.format === "CSV") messages = genCSV(matchJson);
+                else if (info.rules?.format === "SPACE")
+                    messages = genSheets(matchJson);
+                else if (info.rules?.format === "TOUR")
+                    messages = genTour(matchJson);
+                else messages = genMessage(matchJson);
+
+                console.log(matchJson);
+
+                let psPlayer1 = matchJson.playerNames[0];
+                let psPlayer2 = matchJson.playerNames[1];
+                let message1 = messages[0];
+                let message2 = messages[1];
+
+                let finalMessage = "";
+
+                //finally sending players the info
+                if (info.rules?.format === "TOUR") {
+                    if (info.rules.spoiler) finalMessage = `||${message1}||`;
+                    else finalMessage = message1;
+                } else {
+                    if (info.rules.spoiler)
+                        finalMessage = `**${psPlayer1}**: ||\n${message1}|| \n**${psPlayer2}**: ||\n${message2}||`;
+                    else
+                        finalMessage = `**${psPlayer1}**: \n${message1} \n**${psPlayer2}**: \n${message2}`;
+                }
+
+                if (info.rules.tb) {
+                    finalMessage = `**Result:** ${
+                        info.rules.spoiler ? `|| ${info.result}||` : info.result
+                    }\n\n${finalMessage}\n**Replay: **<${
+                        info.replay
+                    }>\n**History: **${info.history}`;
+                }
+
+                if (channelId && message.guild) {
+                    const channel = funcs.getChannel(message.guild, channelId);
+                    console.log(channel);
+                    if (channel?.isText())
+                        //Checking if it's a text channel instead of a voice channel
+                        channel?.send(finalMessage);
+                    return;
+                }
+            }
+        });
+    } catch (e: any) {
+        console.error(e);
+        await message.reply(
+            `There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\`\n Use these stats instead.`
+        );
+        //Send the stats
+        league.system = "D";
+        discordUpdate(matchJson, message, league);
+    }
+};
 const update = async (matchJson: Stats, message: Message) => {
     const league = await Prisma.getLeague(message.channel.id);
     let system = league?.system;
@@ -440,6 +515,8 @@ const update = async (matchJson: Stats, message: Message) => {
             if (system === "S") await sheetsUpdate(matchJson, message, league);
             else if (system === "DL")
                 await dlUpdate(matchJson, message, league);
+            else if (system === "R")
+                await roleUpdate(matchJson, message, league);
             else await discordUpdate(matchJson, message, league);
         } else await discordUpdate(matchJson, message, league);
     } catch (e: any) {

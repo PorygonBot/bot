@@ -13,6 +13,7 @@ class Prisma {
         resultsChannelId?: string;
         dlId?: string;
         sheetId?: string;
+        rolesChannels?: {}
     }) {
         const league = await this.getLeague(obj.channelId);
         await prisma.league.upsert({
@@ -25,6 +26,7 @@ class Prisma {
                 resultsChannelId: obj.resultsChannelId ?? "",
                 dlId: obj.dlId ?? "",
                 sheetId: obj.sheetId ?? "",
+                rolesChannels: obj.rolesChannels
             },
             create: {
                 name: obj.leagueName ?? "",
