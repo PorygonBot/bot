@@ -1495,7 +1495,7 @@ class ReplayTracker {
                                 killer,
                                 this.rules.db === "P"
                             );
-                            battle[`${victimPlayerSide}Pokemon` as const][
+                            battle[`${oppositePlayerSide}Pokemon` as const][
                                 killer
                             ].killed(deathJson);
 
@@ -1662,7 +1662,7 @@ class ReplayTracker {
                 },
                 error: ":x: :x: Something went wrong. Please try again. :x: :x: ",
             };
-        } catch (e) {
+        } catch (e: any) {
             process.stdout.write(`${this.battlelink}: `);
             console.error(e);
             return {
