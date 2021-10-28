@@ -1,3 +1,4 @@
+import { channel } from "diagnostic_channel";
 import { Message, Client, Collection } from "discord.js";
 import { Command } from "../types";
 
@@ -18,7 +19,7 @@ export default {
             })) as Collection<string, Message>;
 
         //Creating the array of messages between the start and end of tracking
-        let messages = messagesList.map(collection => collection);
+        let messages = messagesList.map((collection) => collection);
         let msgs = [];
         for (const msg of messages) {
             if (msg.content === "Tracking now!") break;
@@ -28,31 +29,33 @@ export default {
 
         //Collecting the reactions and stuff
         msgs = msgs.reverse();
-        let sentData: { [key: string]: string } = {};
+        let allMessages = [];
         for (const msg of msgs) {
-            const reactions = msg.reactions.cache.map(collection => collection);
+            const reactions = msg.reactions.cache.map(
+                (collection) => collection
+            );
 
-            sentData[msg.content] = "";
-
+            let reactorsArr;
+            let allReactions = [];
             for (const reaction of reactions) {
                 const emoji = reaction.emoji.toString();
 
                 let reactorsCollection = await reaction.users.fetch();
-                let reactorsArr = reactorsCollection.map(
+                reactorsArr = reactorsCollection.map(
                     (reactor) =>
-                        `- ${reactor.username + "#" + reactor.discriminator}`
+                        reactor.username + "#" + reactor.discriminator
                 );
-
-                const reactors = reactorsArr.join("\n");
-
-                sentData[msg.content] += `${emoji}\n${reactors}\n\n`;
+                allReactions.push([emoji, ...reactorsArr]);
             }
             //Sending the reactions for each message one by one
-            author.send(
-                `> ${msg.content}\n${
-                    sentData[msg.content]
-                }\n============================================================================================================`
+            allMessages.push(
+                `> ${msg.content}\n${allReactions
+                    .map((reactionsList) => reactionsList.join(","))
+                    .join("\n")}`
             );
         }
+
+        await author.send(allMessages.join("\n\n"));
+        await message.channel.send("Reactions tracked and updated!");
     },
 } as Command;
