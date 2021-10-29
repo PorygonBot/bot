@@ -36,6 +36,7 @@ class Prisma {
                 resultsChannelId: obj.resultsChannelId ?? "",
                 dlId: obj.dlId ?? "",
                 sheetId: obj.sheetId ?? "",
+                rolesChannels: obj.rolesChannels
             },
         });
     }

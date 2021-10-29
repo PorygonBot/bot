@@ -118,7 +118,7 @@ export default {
                     const roleChannelId = roleChannel.match(/(\d+)/)![0];
 
                     rolesChannels[roleId] = roleChannelId;
-
+                    console.log(rolesChannels);
                     await channel.send("Registered.");
                 });
 
@@ -136,6 +136,7 @@ export default {
                     };
 
                     let league = await Prisma.getLeague(channel.id);
+                    console.log(rolesChannels);
                     if (league) {
                         await Prisma.upsertLeague({
                             channelId: channel.id,
@@ -237,6 +238,10 @@ export default {
                     .addField(
                         "-dl",
                         "Updates draft-league.nl page with the stats automatically. Click [here](https://discord.com/channels/685139768840945674/734963749966053376/819300373143486475) for more info."
+                    )
+                    .addField(
+                        "-roles",
+                        "Updates stats to a channel based on the user who sent the link's roles. \nExtra parameters: N/A\nExample: `porygon, use mode -roles`\n`@Test Ping #test-live-links`\n`@Test Ping 2 #test-live-links-2`\n`end`"
                     );
                 return message.channel
                     .send({ embeds: [modeEmbed] })
