@@ -3,10 +3,84 @@ import querystring from "querystring";
 import { Message, MessageEmbed, Client } from "discord.js";
 
 import { Prisma } from "../utils";
-import {
-    collapseTextChangeRangesAcrossMultipleVersions,
-    isReturnStatement,
-} from "typescript";
+
+const updateDb = async (
+    message: Message,
+    mode: "" | "D" | "C" | "DM" | "S" | "DL" | "R",
+    updateObj: {
+        channelId: string;
+        system: string;
+        leagueName?: string;
+        guildId?: string;
+        resultsChannelId?: string;
+        dlId?: string;
+        sheetId?: string;
+        rolesChannels?: {};
+    }
+) => {
+    let league = await Prisma.getLeague(message.channel.id);
+    const modes = {
+        D: "Default",
+        C: "Channel",
+        DM: "DM",
+        S: "Sheets",
+        DL: "DL",
+        R: "Roles",
+        "": "Default",
+    };
+
+    if (league) {
+        await Prisma.upsertLeague(updateObj);
+
+        console.log(
+            `${league.name}'s mode has been changed to ${
+                modes[mode] || "Default"
+            } mode!`
+        );
+        await message.channel.send(
+            `\`${league.name}\`'s mode has been changed to ${
+                modes[mode] || "Default"
+            } mode! ${
+                modes[mode] === "Sheets"
+                    ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
+                    : ""
+            }`
+        );
+    } else {
+        // Message Collector for the required info for the client
+        const filter = (m: Message) => m.author === message.author;
+        const collector = message.channel.createMessageCollector({
+            filter,
+            max: 1,
+        });
+
+        await message.channel.send(
+            "What is this league's name? [the whole of your next message will be taken as the league's name]"
+        );
+        collector.on("collect", async (m: Message) => {
+            let leagueName = m.content;
+            await Prisma.upsertLeague(updateObj);
+            collector.stop();
+
+            console.log(
+                `${leagueName}'s mode has been changed to ${
+                    modes[mode] || "Default"
+                } mode!`
+            );
+            await message.channel.send(
+                `\`${leagueName}\`'s mode has been changed to ${
+                    modes[mode] || "Default"
+                } mode! ${
+                    modes[mode] === "Sheets"
+                        ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
+                        : ""
+                }`
+            );
+
+            return;
+        });
+    }
+};
 
 export default {
     name: "mode",
@@ -45,9 +119,29 @@ export default {
                         ":x: You didn't link a valid channel. Please run the command again and link the channel you'd like the stats to be put in."
                     );
                 }
+
+                await updateDb(message, mode, {
+                    channelId: channel.id,
+                    system: mode,
+                    guildId: message.guild?.id,
+                    resultsChannelId: streamChannel,
+                    dlId: dlID,
+                    sheetId: sheetsID,
+                    rolesChannels: rolesChannels,
+                });
                 break;
             case "-dm":
                 mode = "DM";
+
+                await updateDb(message, mode, {
+                    channelId: channel.id,
+                    system: mode,
+                    guildId: message.guild?.id,
+                    resultsChannelId: streamChannel,
+                    dlId: dlID,
+                    sheetId: sheetsID,
+                    rolesChannels: rolesChannels,
+                });
                 break;
             case "-s":
             case "-sheets":
@@ -63,6 +157,16 @@ export default {
                     );
                 }
                 sheetsID = sheetsLink.split("/")[5];
+
+                await updateDb(message, mode, {
+                    channelId: channel.id,
+                    system: mode,
+                    guildId: message.guild?.id,
+                    resultsChannelId: streamChannel,
+                    dlId: dlID,
+                    sheetId: sheetsID,
+                    rolesChannels: rolesChannels,
+                });
                 break;
             case "-nl":
             case "-draft-league.nl":
@@ -84,11 +188,31 @@ export default {
                         ":x: You're not a moderator on the website for the given league."
                     );
                 }
+
+                await updateDb(message, mode, {
+                    channelId: channel.id,
+                    system: mode,
+                    guildId: message.guild?.id,
+                    resultsChannelId: streamChannel,
+                    dlId: dlID,
+                    sheetId: sheetsID,
+                    rolesChannels: rolesChannels,
+                });
                 break;
             case "-d":
             case "-defualt":
             case "-default":
                 mode = "D";
+                
+                await updateDb(message, mode, {
+                    channelId: channel.id,
+                    system: mode,
+                    guildId: message.guild?.id,
+                    resultsChannelId: streamChannel,
+                    dlId: dlID,
+                    sheetId: sheetsID,
+                    rolesChannels: rolesChannels,
+                });
                 break;
             case "-r":
             case "-roles":
@@ -124,90 +248,16 @@ export default {
 
                 collector.on("end", async (collected, reason) => {
                     await channel.send("All roles have been registered!");
-
-                    const modes = {
-                        D: "Default",
-                        C: "Channel",
-                        DM: "DM",
-                        S: "Sheets",
-                        DL: "DL",
-                        R: "Roles",
-                        "": "Default",
-                    };
-
-                    let league = await Prisma.getLeague(channel.id);
-                    console.log(rolesChannels);
-                    if (league) {
-                        await Prisma.upsertLeague({
-                            channelId: channel.id,
-                            system: mode,
-                            guildId: message.guild?.id,
-                            resultsChannelId: streamChannel,
-                            dlId: dlID,
-                            sheetId: sheetsID,
-                            rolesChannels: rolesChannels,
-                        });
-
-                        console.log(
-                            `${league.name}'s mode has been changed to ${
-                                modes[mode] || "Default"
-                            } mode!`
-                        );
-                        await channel.send(
-                            `\`${league.name}\`'s mode has been changed to ${
-                                modes[mode] || "Default"
-                            } mode! ${
-                                modes[mode] === "Sheets"
-                                    ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
-                                    : ""
-                            }`
-                        );
-                    } else {
-                        // Message Collector for the required info for the client
-                        const filter = (m: Message) =>
-                            m.author === message.author;
-                        const collector =
-                            message.channel.createMessageCollector({
-                                filter,
-                                max: 1,
-                            });
-
-                        await channel.send(
-                            "What is this league's name? [the whole of your next message will be taken as the league's name]"
-                        );
-                        collector.on("collect", async (m: Message) => {
-                            let leagueName = m.content;
-                            await Prisma.upsertLeague({
-                                channelId: channel.id,
-                                system: mode,
-                                leagueName: leagueName,
-                                guildId: message.guild?.id,
-                                resultsChannelId: streamChannel,
-                                dlId: dlID,
-                                sheetId: sheetsID,
-                            });
-                            collector.stop();
-
-                            console.log(
-                                `${leagueName}'s mode has been changed to ${
-                                    modes[mode] || "Default"
-                                } mode!`
-                            );
-                            channel.send(
-                                `\`${leagueName}\`'s mode has been changed to ${
-                                    modes[mode] || "Default"
-                                } mode! ${
-                                    modes[mode] === "Sheets"
-                                        ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
-                                        : ""
-                                }`
-                            );
-
-                            return;
-                        });
-                    }
+                    await updateDb(message, mode, {
+                        channelId: channel.id,
+                        system: mode,
+                        guildId: message.guild?.id,
+                        resultsChannelId: streamChannel,
+                        dlId: dlID,
+                        sheetId: sheetsID,
+                        rolesChannels: rolesChannels,
+                    });
                 });
-
                 break;
             default:
                 const modeEmbed = new MessageEmbed()
