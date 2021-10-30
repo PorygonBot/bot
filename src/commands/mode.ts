@@ -98,7 +98,7 @@ export default {
         }
 
         let mode: "" | "D" | "C" | "DM" | "S" | "DL" | "R";
-        let discordMode = args[0].toLowerCase();
+        let discordMode = args[0].toLowerCase() ?? "";
         let streamChannel = "";
         let sheetsID = "";
         let dlID = "";
