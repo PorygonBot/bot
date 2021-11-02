@@ -119,9 +119,9 @@ const messageFunction = async (message: Message) => {
             if (links) battlelink = links[0];
             let battleId = battlelink && battlelink.split("/")[3];
 
-            if (Battle.battles.includes(battleId)) {
+            if (Battle.battles.includes(battleId) && battleId !== "") {
                 await channel.send(
-                    `:x: I'm already tracking this battle (${battleId}). If you think this is incorrect, send a replay of this match in the #bugs-and-help channel in the Porygon server.`
+                    `:x: I'm already tracking battle \`${battleId}\`. If you think this is incorrect, send a replay of this match in the #bugs-and-help channel in the Porygon server.`
                 );
 
                 return;
