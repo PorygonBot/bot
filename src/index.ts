@@ -1,7 +1,7 @@
 // Importing required modules
 import * as dotenv from "dotenv";
 import axios from "axios";
-import { CommandInteraction, Message } from "discord.js";
+import { Message } from "discord.js";
 import {
     client,
     Prisma,
@@ -11,7 +11,7 @@ import {
     commands,
     slashAnalyzeUpdate,
 } from "./utils";
-import { Battle, Command, Stats } from "./types";
+import { Battle, Command } from "./types";
 // Setting things up
 dotenv.config();
 

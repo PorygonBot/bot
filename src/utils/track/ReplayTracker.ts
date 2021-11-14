@@ -1167,10 +1167,18 @@ class ReplayTracker {
                                         killer =
                                             this.rules.selfteam !== "N"
                                                 ? battle[oppositeSide].name
-                                                : "an ally";
+                                                : "";
                                     }
 
                                     if (killer) {
+                                        console.log(
+                                            Object.keys(
+                                                battle[
+                                                    `${oppositePlayerSide}Pokemon` as const
+                                                ]
+                                            )
+                                        );
+                                        console.log(killer);
                                         battle[
                                             `${oppositePlayerSide}Pokemon` as const
                                         ][killer].killed(deathJson);

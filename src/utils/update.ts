@@ -228,8 +228,6 @@ const discordUpdate = async (
     else if (info.rules?.format === "TOUR") messages = genTour(matchJson);
     else messages = genMessage(matchJson);
 
-    console.log(matchJson);
-
     let psPlayer1 = matchJson.playerNames[0];
     let psPlayer2 = matchJson.playerNames[1];
     let message1 = messages[0];
@@ -383,13 +381,6 @@ const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
         );
 
         //Posting to the replay webhook
-        console.log(matchJson.info.result);
-        console.log(discordUserPS);
-        console.log(
-            matchJson.info.result
-                .toLowerCase()
-                .includes(discordUserPS.toLowerCase())
-        );
         let result = matchJson.info.result
             .toLowerCase()
             .includes(discordUserPS.toLowerCase())
