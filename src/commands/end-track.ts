@@ -1,5 +1,5 @@
-import { channel } from "diagnostic_channel";
 import { Message, Client, Collection } from "discord.js";
+import fs from "fs";
 import { Command } from "../types";
 
 export default {
@@ -42,20 +42,27 @@ export default {
 
                 let reactorsCollection = await reaction.users.fetch();
                 reactorsArr = reactorsCollection.map(
-                    (reactor) =>
-                        reactor.username + "#" + reactor.discriminator
+                    (reactor) => reactor.username + "#" + reactor.discriminator
                 );
                 allReactions.push([emoji, ...reactorsArr]);
             }
             //Sending the reactions for each message one by one
             allMessages.push(
-                `> ${msg.content}\n${allReactions
+                `${msg.content}\n${allReactions
                     .map((reactionsList) => reactionsList.join(","))
                     .join("\n")}`
             );
         }
 
-        await author.send(allMessages.join("\n\n"));
+        //Creating the CSV file
+        const finalCSV = allMessages.join("\n\n");
+        fs.writeFileSync(`${message.id}.csv`, finalCSV);
+
+        //Sending the results
+        await author.send({ files: [`${message.id}.csv`] });
         await message.channel.send("Reactions tracked and updated!");
+
+        //Deleting the CSV file
+        fs.unlinkSync(`${message.id}.csv`);
     },
 } as Command;
