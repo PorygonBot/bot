@@ -1619,7 +1619,10 @@ class ReplayTracker {
                         let forfeiterSide = (
                             forfeiter === battle.p1 ? "p1" : "p2"
                         ) as "p1" | "p2";
-                        let winnerSide = forfeiterSide === "p1" ? "p2" : "p1" as "p1" | "p2";
+                        let winnerSide =
+                            forfeiterSide === "p1"
+                                ? "p2"
+                                : ("p1" as "p1" | "p2");
                         if (this.rules.forfeit !== "N") {
                             let numDead = 0;
 
