@@ -1619,6 +1619,7 @@ class ReplayTracker {
                         let forfeiterSide = (
                             forfeiter === battle.p1 ? "p1" : "p2"
                         ) as "p1" | "p2";
+                        let winnerSide = forfeiterSide === "p1" ? "p2" : "p1" as "p1" | "p2";
                         if (this.rules.forfeit !== "N") {
                             let numDead = 0;
 
@@ -1627,7 +1628,7 @@ class ReplayTracker {
                             )) {
                                 if (!pokemon.isDead) numDead++;
                             }
-                            battle[`${forfeiterSide}a` as const][
+                            battle[`${winnerSide}a` as const][
                                 `current${
                                     this.rules.forfeit as "D" | "P"
                                 }Kills` as const
