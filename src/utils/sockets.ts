@@ -48,6 +48,12 @@ const sockets: { [key: string]: Socket } = {
         link: 'http://fantasyclient.herokuapp.com/',
         ip: 'fantasy-showdown.herokuapp.com:8000',
         server: 'ws://fantasy-showdown.herokuapp.com:8000/showdown/websocket'
+    },
+    legacyvgc: {
+        name: "Legacy VGC",
+        link: "http://legacyvgc.psim.us/",
+        ip: "35.175.128.48:8000",
+        server: "ws://35.175.128.48:8000/showdown/websocket"
     }
 };
 

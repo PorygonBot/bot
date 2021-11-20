@@ -20,10 +20,10 @@ class ReplayTracker {
     ) {
         this.battlelink = battlelink;
         this.rules = rules;
-        this.serverType = serverType.toLowerCase();
+        this.serverType = serverType.toLowerCase().replace(" ", "");
         this.message = message;
         this.websocket = new WebSocket(
-            sockets[serverType.toLowerCase()].server
+            sockets[this.serverType.toLowerCase()].server
         );
     }
 
