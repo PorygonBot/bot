@@ -17,7 +17,7 @@ const sockets: { [key: string]: Socket } = {
         name: 'Automatthic',
         link: 'http://automatthic.psim.us',
         ip: '185.224.89.75:8000',
-        server: 'ws://34.222.148.43:8000/showdown/websocket',
+        server: 'ws://185.224.89.75:8000/showdown/websocket',
     },
     dawn: {
         name: 'Dawn',
