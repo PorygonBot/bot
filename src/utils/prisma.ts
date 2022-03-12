@@ -13,7 +13,7 @@ class Prisma {
         resultsChannelId?: string;
         dlId?: string;
         sheetId?: string;
-        rolesChannels?: {}
+        rolesChannels?: {};
     }) {
         const league = await this.getLeague(obj.channelId);
         await prisma.league.upsert({
@@ -26,7 +26,7 @@ class Prisma {
                 resultsChannelId: obj.resultsChannelId ?? "",
                 dlId: obj.dlId ?? "",
                 sheetId: obj.sheetId ?? "",
-                rolesChannels: obj.rolesChannels
+                rolesChannels: obj.rolesChannels,
             },
             create: {
                 name: obj.leagueName ?? "",
@@ -36,16 +36,16 @@ class Prisma {
                 resultsChannelId: obj.resultsChannelId ?? "",
                 dlId: obj.dlId ?? "",
                 sheetId: obj.sheetId ?? "",
-                rolesChannels: obj.rolesChannels
+                rolesChannels: obj.rolesChannels,
             },
         });
     }
 
     static async leagueWhere(prop: string, value: string) {
-        let obj = {} as {[key: string]: string};
+        let obj = {} as { [key: string]: string };
         obj[prop] = value;
         const leagues = await prisma.league.findMany({
-            where: obj
+            where: obj,
         });
 
         return leagues;
@@ -62,17 +62,19 @@ class Prisma {
     }
 
     static async deleteLeague(channelId: string) {
-        await prisma.league.delete({
-            where: {
-                channelId: channelId,
-            },
-        });
+        if (await this.getLeague(channelId))
+            await prisma.league.delete({
+                where: {
+                    channelId: channelId,
+                },
+            });
 
-        await prisma.rules.delete({
-            where: {
-                channelId: channelId,
-            },
-        });
+        if (await this.getRules(channelId))
+            await prisma.rules.delete({
+                where: {
+                    channelId: channelId,
+                },
+            });
     }
 
     static async upsertRules(
@@ -123,17 +125,16 @@ class Prisma {
 
         if (numLeagues >= 1) {
             let prismaRules = await prisma.rules
-            .findUnique({
-                where: {
-                    channelId: channelId,
-                },
-            })
-            .catch((e: Error) => {
-                console.error(e);
-            });
+                .findUnique({
+                    where: {
+                        channelId: channelId,
+                    },
+                })
+                .catch((e: Error) => {
+                    console.error(e);
+                });
 
-            if (prismaRules)
-                rules = prismaRules as unknown as Rules;
+            if (prismaRules) rules = prismaRules as unknown as Rules;
         }
 
         return rules;
@@ -145,7 +146,7 @@ class Prisma {
 
         return {
             rules: rules,
-            leagues: leagues
+            leagues: leagues,
         };
     }
 }
