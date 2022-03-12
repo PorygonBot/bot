@@ -54,7 +54,13 @@ const sockets: { [key: string]: Socket } = {
         link: "http://legacyvgc.psim.us/",
         ip: "35.175.128.48:8000",
         server: "ws://35.175.128.48:8000/showdown/websocket"
-    }
+    },
+    plamonsradicalred: {
+        name: 'RadicalRed',
+        link: 'https://plamons.radicalred.net',
+        ip: 'sim.radicalred.net:8000',
+        server: 'ws://sim.radicalred.net:8000/showdown/websocket',
+    },
 };
 
 export default sockets;
