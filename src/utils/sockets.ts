@@ -10,14 +10,14 @@ const sockets: { [key: string]: Socket } = {
     sports: {
         name: 'Sports',
         link: 'http://sports.psim.us',
-        ip: '34.222.148.43:8000',
-        server: 'ws://34.222.148.43:8000/showdown/websocket',
+        ip: '54.202.92.100:8000',
+        server: 'ws://54.202.92.100:8000/showdown/websocket',
     },
     automatthic: {
         name: 'Automatthic',
         link: 'http://automatthic.psim.us',
         ip: '185.224.89.75:8000',
-        server: 'ws://34.222.148.43:8000/showdown/websocket',
+        server: 'ws://185.224.89.75:8000/showdown/websocket',
     },
     dawn: {
         name: 'Dawn',
