@@ -217,9 +217,6 @@ export default {
             case "-r":
             case "-roles":
             case "-role":
-            case "-help":
-            case "-hlep":
-            case "-h":
                 mode = "R";
 
                 //Collecting all the roles and their respective channels
@@ -262,6 +259,10 @@ export default {
                     });
                 });
                 break;
+            case "-help":
+            case "-hlep":
+            case "-h":
+            case "help":
             default:
                 const modeEmbed = new MessageEmbed()
                     .setColor("#fc03d7")
