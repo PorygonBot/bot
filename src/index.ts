@@ -137,7 +137,7 @@ const messageFunction = async (message: Message) => {
                 )
             ) {
                 let server = Object.values(sockets).filter((socket) =>
-                    battlelink.startsWith(socket.link)
+                    battlelink.includes(socket.link)
                 )[0];
                 if (!server) {
                     await channel.send(

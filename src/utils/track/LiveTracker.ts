@@ -47,7 +47,7 @@ class ReplayTracker {
                     if (line.startsWith(`|noinit|`)) {
                         this.websocket.send(`${this.battlelink}|/leave`);
                         Battle.decrementBattles(this.battlelink);
-                        console.log(`Left ${this.battlelink}.`);
+                        console.log(`Left ${this.battlelink} due to noinit.`);
                         if (line.includes("nonexistent|")) {
                             returnData = {
                                 error: `:x: Battle ${this.battlelink} is invalid. The battleroom is either closed or non-existent. I have left the battle.`,
@@ -59,6 +59,10 @@ class ReplayTracker {
                         } else if (line.includes("rename")) {
                             returnData = {
                                 error: `:x: Battle ${this.battlelink} has become private. I have left the battle. Please run \`/inviteonly off\` in the battle chat and re-send the link here.`,
+                            } as Stats;
+                        } else {
+                            returnData = {
+                                error: `:x: Battle \`${this.battlelink}\` is erroring for one reason or another. Please screenshot this message and send it in the Porygon server.`
                             } as Stats;
                         }
                     }
@@ -122,9 +126,9 @@ class ReplayTracker {
                             this.websocket.send(`${this.battlelink}|Ok. Bye!`);
                             Battle.decrementBattles(this.battlelink);
 
-                            console.log(`Left ${this.battlelink}.`);
+                            console.log(`Left ${this.battlelink} due to in-chat command.`);
                             returnData = {
-                                error: `Left ${this.battlelink}.`,
+                                error: `Left ${this.battlelink} due to in-chat command.`,
                             } as Stats;
                         }
                     }

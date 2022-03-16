@@ -21,9 +21,9 @@ const sockets: { [key: string]: Socket } = {
     },
     dawn: {
         name: 'Dawn',
-        link: 'http://dawn.psim.us',
-        ip: 'oppai.azure.lol:80',
-        server: 'ws://oppai.azure.lol:80/showdown/websocket',
+        link: 'dawn.psim.us',
+        ip: 'server.dawn-ps.com:8080',
+        server: 'ws://server.dawn-ps.com:8080/showdown/websocket',
     },
     drafthub: {
         name: 'Drafthub',
@@ -39,7 +39,7 @@ const sockets: { [key: string]: Socket } = {
     },
     radicalred: {
         name: 'RadicalRed',
-        link: 'https://play.radicalred.net',
+        link: 'radicalred.net',
         ip: 'sim.radicalred.net:8000',
         server: 'ws://sim.radicalred.net:8000/showdown/websocket',
     },
@@ -54,12 +54,6 @@ const sockets: { [key: string]: Socket } = {
         link: "http://legacyvgc.psim.us/",
         ip: "35.175.128.48:8000",
         server: "ws://35.175.128.48:8000/showdown/websocket"
-    },
-    plamonsradicalred: {
-        name: 'RadicalRed',
-        link: 'https://plamons.radicalred.net',
-        ip: 'sim.radicalred.net:8000',
-        server: 'ws://sim.radicalred.net:8000/showdown/websocket',
     },
 };
 
