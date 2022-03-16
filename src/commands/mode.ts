@@ -98,7 +98,7 @@ export default {
         }
 
         let mode: "" | "D" | "C" | "DM" | "S" | "DL" | "R";
-        let discordMode = args[0].toLowerCase() ?? "";
+        let discordMode = args[0] ? args[0].toLowerCase() : "";
         let streamChannel = "";
         let sheetsID = "";
         let dlID = "";
@@ -217,6 +217,9 @@ export default {
             case "-r":
             case "-roles":
             case "-role":
+            case "-help":
+            case "-hlep":
+            case "-h":
                 mode = "R";
 
                 //Collecting all the roles and their respective channels

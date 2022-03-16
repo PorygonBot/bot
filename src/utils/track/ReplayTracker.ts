@@ -23,7 +23,7 @@ class ReplayTracker {
             let realdata = data.split("\n");
 
             for (const line of realdata) {
-                //console.log(line);
+                console.log(line);
                 dataArr.push(line);
 
                 //Separates the line into parts, separated by `|`
@@ -450,6 +450,7 @@ class ReplayTracker {
                     line.startsWith("|-fieldactivate|") ||
                     line.startsWith("|-fail|") ||
                     line.startsWith("|-combine") ||
+                    line.startsWith("|-clearallboost") ||
                     line.startsWith("|t:|") ||
                     line.startsWith("|c|") ||
                     line.startsWith("|l|") ||
@@ -818,6 +819,7 @@ class ReplayTracker {
                     let move = parts[3]
                         ? parts[3].split("move: ")[1]
                         : prevMoveParts[2];
+                    console.log(prevMoveParts);
                     let removerSide = (
                         parts[4]
                             ? parts[4].split("[of] ")[1].split(": ")[0]

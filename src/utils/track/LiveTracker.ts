@@ -864,6 +864,7 @@ class ReplayTracker {
                         line.startsWith("|-fieldactivate|") ||
                         line.startsWith("|-fail|") ||
                         line.startsWith("|-combine") ||
+                        line.startsWith("|-clearallboost") ||
                         line.startsWith("|t:|") ||
                         line.startsWith("|c|") ||
                         line.startsWith("|l|") ||
