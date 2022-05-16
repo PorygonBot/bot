@@ -62,7 +62,7 @@ class ReplayTracker {
                             } as Stats;
                         } else {
                             returnData = {
-                                error: `:x: Battle \`${this.battlelink}\` is erroring for one reason or another. Please screenshot this message and send it in the Porygon server.`
+                                error: `:x: Battle \`${this.battlelink}\` is erroring for one reason or another. Please screenshot this message and send it in the Porygon server.`,
                             } as Stats;
                         }
                     }
@@ -126,7 +126,9 @@ class ReplayTracker {
                             this.websocket.send(`${this.battlelink}|Ok. Bye!`);
                             Battle.decrementBattles(this.battlelink);
 
-                            console.log(`Left ${this.battlelink} due to in-chat command.`);
+                            console.log(
+                                `Left ${this.battlelink} due to in-chat command.`
+                            );
                             returnData = {
                                 error: `Left ${this.battlelink} due to in-chat command.`,
                             } as Stats;
@@ -869,6 +871,7 @@ class ReplayTracker {
                         line.startsWith("|c|") ||
                         line.startsWith("|l|") ||
                         line.startsWith("|j|") ||
+                        line.startsWith("|inactive|") ||
                         line === "|"
                     ) {
                         dataArr.splice(dataArr.length - 1, 1);
@@ -1235,7 +1238,11 @@ class ReplayTracker {
 
                     //If a hazard ends on a side
                     else if (line.startsWith(`|-sideend|`)) {
-                        let side = parts[1].split(": ")[0];
+                        let side = parts[1].split(": ")[0] as
+                            | "p1a"
+                            | "p1b"
+                            | "p2a"
+                            | "p2b";
                         let hazard = parts[2];
                         let prevMoveLine = dataArr[dataArr.length - 2];
                         let prevMoveParts = prevMoveLine.split("|").slice(1);
@@ -1247,11 +1254,17 @@ class ReplayTracker {
                                 ? parts[4].split("[of] ")[1].split(": ")[0]
                                 : prevMoveParts[1].split(": ")[0]
                         ) as "p1a" | "p1b" | "p2a" | "p2b";
+                        // If it doesn't work, just assume it's a "hazard" that was cleared by the user
+                        if (!["p1a", "p1b", "p2a", "p2b"].includes(removerSide))
+                            removerSide = side;
 
                         battle.endHazard(side, hazard);
 
                         battle.history.push(
-                            `${hazard} has been removed by ${battle[removerSide].realName} with ${move} (Turn ${battle.turns}).`
+                            `${hazard} has been removed by ${
+                                battle[removerSide].realName ||
+                                battle[removerSide].name
+                            } with ${move} (Turn ${battle.turns}).`
                         );
                         dataArr.splice(dataArr.length - 1, 1);
                     }
@@ -1556,7 +1569,10 @@ class ReplayTracker {
                                         move === "Hail" ||
                                         move === "Sandstorm"
                                     ) {
-                                        killer = battle.weatherInflictor;
+                                        killer =
+                                            battle.weatherInflictor.split(
+                                                "-"
+                                            )[0];
 
                                         let deathJson = battle[victimSide].died(
                                             move,

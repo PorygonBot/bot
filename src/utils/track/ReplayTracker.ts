@@ -23,7 +23,7 @@ class ReplayTracker {
             let realdata = data.split("\n");
 
             for (const line of realdata) {
-                console.log(line);
+                //console.log(line);
                 dataArr.push(line);
 
                 //Separates the line into parts, separated by `|`
@@ -455,6 +455,7 @@ class ReplayTracker {
                     line.startsWith("|c|") ||
                     line.startsWith("|l|") ||
                     line.startsWith("|j|") ||
+                    line.startsWith("|inactive|") ||
                     line === "|"
                 ) {
                     dataArr.splice(dataArr.length - 1, 1);
@@ -812,24 +813,33 @@ class ReplayTracker {
 
                 //If a hazard ends on a side
                 else if (line.startsWith(`|-sideend|`)) {
-                    let side = parts[1].split(": ")[0];
+                    let side = parts[1].split(": ")[0] as
+                        | "p1a"
+                        | "p1b"
+                        | "p2a"
+                        | "p2b";
                     let hazard = parts[2];
                     let prevMoveLine = dataArr[dataArr.length - 2];
                     let prevMoveParts = prevMoveLine.split("|").slice(1);
                     let move = parts[3]
                         ? parts[3].split("move: ")[1]
                         : prevMoveParts[2];
-                    console.log(prevMoveParts);
                     let removerSide = (
                         parts[4]
                             ? parts[4].split("[of] ")[1].split(": ")[0]
                             : prevMoveParts[1].split(": ")[0]
                     ) as "p1a" | "p1b" | "p2a" | "p2b";
+                    // If it doesn't work, just assume it's a "hazard" that was cleared by the user
+                    if (!["p1a", "p1b", "p2a", "p2b"].includes(removerSide))
+                        removerSide = side;
 
                     battle.endHazard(side, hazard);
 
                     battle.history.push(
-                        `${hazard} has been removed by ${battle[removerSide].realName} with ${move} (Turn ${battle.turns}).`
+                        `${hazard} has been removed by ${
+                            battle[removerSide].realName ||
+                            battle[removerSide].name
+                        } with ${move} (Turn ${battle.turns}).`
                     );
                     dataArr.splice(dataArr.length - 1, 1);
                 }
@@ -1115,7 +1125,8 @@ class ReplayTracker {
                                     move === "Hail" ||
                                     move === "Sandstorm"
                                 ) {
-                                    killer = battle.weatherInflictor;
+                                    killer =
+                                        battle.weatherInflictor.split("-")[0];
 
                                     let deathJson = battle[victimSide].died(
                                         move,
