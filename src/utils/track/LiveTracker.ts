@@ -5,7 +5,7 @@ import { Message } from "discord.js";
 import { Rules, Battle, Stats, Pokemon } from "../../types";
 import { sockets, funcs, consts, update } from "..";
 
-class ReplayTracker {
+class LiveTracker {
     battlelink: string;
     rules: Rules;
     serverType: string;
@@ -92,13 +92,13 @@ class ReplayTracker {
                                         ? funcs.randomElement(
                                               consts.quirkyMessages.start
                                           )
-                                        : "Battled joined! Keeping track of stats now."
+                                        : "Battle joined! Keeping track of stats now."
                                 }`
                             );
                             if (!this.rules.notalk)
-                                await this.message.channel.send(
+                                (await this.message.channel.send(
                                     `Battle joined! Keeping track of stats now. ${this.rules.ping}`
-                                );
+                                )).catch((e) => console.error(e));
                         } else {
                             returnData = {
                                 error: ":x: Unable to login/join the battle. Please try again.",
@@ -2139,4 +2139,4 @@ class ReplayTracker {
     }
 }
 
-export default ReplayTracker;
+export default LiveTracker;
