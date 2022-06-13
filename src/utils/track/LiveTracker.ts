@@ -96,9 +96,9 @@ class LiveTracker {
                                 }`
                             );
                             if (!this.rules.notalk)
-                                (await this.message.channel.send(
+                                await this.message.channel.send(
                                     `Battle joined! Keeping track of stats now. ${this.rules.ping}`
-                                )).catch((e) => console.error(e));
+                                );
                         } else {
                             returnData = {
                                 error: ":x: Unable to login/join the battle. Please try again.",
