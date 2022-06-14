@@ -60,10 +60,11 @@ client.on("interactionCreate", async (interaction) => {
     let rules = await Prisma.getRules(interaction.channelId);
     rules.isSlash = true;
 
+    await interaction.deferReply();
     let replayer = new ReplayTracker(valueLink, rules);
     const matchJson = await replayer.track(data);
 
-    await slashAnalyzeUpdate(matchJson, interaction)
+    await slashAnalyzeUpdate(matchJson, interaction);
     // await message.channel.send(
     //     `Battle between \`${matchJson.playerNames[0]}\` and \`${matchJson.playerNames[1]}\` is complete and info has been updated!`
     // );

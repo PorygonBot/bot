@@ -556,7 +556,7 @@ const slashAnalyzeUpdate = async (
         }`;
     }
 
-    interaction.reply(finalMessage);
+    await interaction.editReply(finalMessage);
 };
 
 export { update, slashAnalyzeUpdate };
