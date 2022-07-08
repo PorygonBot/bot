@@ -1,7 +1,7 @@
 // Importing required modules
 import * as dotenv from "dotenv";
 import axios from "axios";
-import { Message } from "discord.js";
+import { Message, GuildMember } from "discord.js";
 import {
     client,
     Prisma,
