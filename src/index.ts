@@ -47,7 +47,7 @@ client.on("guildDelete", () => {
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
 
-    let valueLink = interaction.options.data[0].value as string
+    let valueLink = interaction.options.data[0].value as string;
     let link = valueLink + ".log";
     let response = await axios
         .get(link, {
@@ -185,6 +185,19 @@ const messageFunction = async (message: Message) => {
         const commandName: string = args.shift()?.toLowerCase() || "";
         if (!commandName) return;
 
+        //Check if bot has SEND_MESSAGES perms in the channel
+        if (
+            message.channel.type == "GUILD_TEXT" &&
+            !message.channel
+                ?.permissionsFor(message.guild?.me as GuildMember)
+                .has("SEND_MESSAGES")
+        ) {
+            await message.author.send(
+                `:x: The command that you tried to run in \`${message.guild?.name}\` did not work because Chatot does not have \`Send Messages\` permissions in the channel.`
+            );
+            return;
+        }
+
         //Getting the actual command
         const command =
             commands.get(commandName) ||
@@ -205,7 +218,7 @@ const messageFunction = async (message: Message) => {
             );
         }
     }
-}
+};
 client.on("messageCreate", messageFunction);
 
 // Log the client in.
