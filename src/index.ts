@@ -167,7 +167,6 @@ const messageFunction = async (message: Message) => {
                         .catch((e: Error) => console.error(e));
 
                 Battle.incrementBattles(battleId);
-                console.log(Battle.battles);
                 client.user!.setActivity(
                     `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
                     {

@@ -261,7 +261,13 @@ const discordUpdate = async (
             //Checking if it's a text channel instead of a voice channel
             await channel?.send(finalMessage);
     } else {
-        await message.channel.send(finalMessage);
+        //If notalk is enabled, it just DM's the author
+        if (!info.rules.notalk) await message.channel.send(finalMessage);
+        else
+            await message.author.send(
+                '***_Porygon doesn\'t have "Send Messages" permissions in the live links channel. Please give it those permissions and set the "notalk" rule to "true" in the channel._***\n\n' +
+                    finalMessage
+            );
     }
 };
 const sheetsUpdate = async (
@@ -494,28 +500,6 @@ const roleUpdate = async (
         discordUpdate(matchJson, message, league);
     }
 };
-const update = async (matchJson: Stats, message: Message) => {
-    const league = await Prisma.getLeague(message.channel.id);
-    let system = league?.system;
-
-    if (matchJson.error) return await message.reply(matchJson.error);
-
-    try {
-        if (league) {
-            if (system === "S") await sheetsUpdate(matchJson, message, league);
-            else if (system === "DL")
-                await dlUpdate(matchJson, message, league);
-            else if (system === "R")
-                await roleUpdate(matchJson, message, league);
-            else await discordUpdate(matchJson, message, league);
-        } else await discordUpdate(matchJson, message, league);
-    } catch (e: any) {
-        console.error(e);
-        return await message.reply(
-            `There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\``
-        );
-    }
-};
 const slashAnalyzeUpdate = async (
     matchJson: Stats,
     interaction: CommandInteraction
@@ -557,6 +541,28 @@ const slashAnalyzeUpdate = async (
     }
 
     await interaction.editReply(finalMessage);
+};
+const update = async (matchJson: Stats, message: Message) => {
+    const league = await Prisma.getLeague(message.channel.id);
+    let system = league?.system;
+
+    if (matchJson.error) return await message.reply(matchJson.error);
+
+    try {
+        if (league) {
+            if (system === "S") await sheetsUpdate(matchJson, message, league);
+            else if (system === "DL")
+                await dlUpdate(matchJson, message, league);
+            else if (system === "R")
+                await roleUpdate(matchJson, message, league);
+            else await discordUpdate(matchJson, message, league);
+        } else await discordUpdate(matchJson, message, league);
+    } catch (e: any) {
+        console.error(e);
+        return await message.reply(
+            `There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\``
+        );
+    }
 };
 
 export { update, slashAnalyzeUpdate };

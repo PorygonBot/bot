@@ -442,9 +442,10 @@ class LiveTracker {
                             await update(returnData as Stats, this.message);
 
                             //Done!
-                            this.message.channel.send(
-                                `Battle between \`${player1}\` and \`${player2}\` is complete and info has been updated!`
-                            );
+                            if (!this.rules.notalk)
+                                this.message.channel.send(
+                                    `Battle between \`${player1}\` and \`${player2}\` is complete and info has been updated!`
+                                );
                             this.websocket.send(`|/leave ${this.battlelink}`);
                             this.websocket.close();
                         }
