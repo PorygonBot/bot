@@ -151,6 +151,16 @@ const messageFunction = async (message: Message) => {
                 //Getting the rules
                 let rules = await Prisma.getRules(channel.id);
 
+                //Check if bot has SEND_MESSAGES perms in the channel
+                if (
+                    message.channel.type == "GUILD_TEXT" &&
+                    !message.channel
+                        ?.permissionsFor(message.guild?.me as GuildMember)
+                        .has("SEND_MESSAGES")
+                ) {
+                    rules.notalk = true;
+                }
+
                 if (!rules.notalk)
                     await channel
                         .send("Joining the battle...")
