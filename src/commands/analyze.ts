@@ -13,6 +13,9 @@ export default {
 
 		channel.send("Analyzing...");
 		for (let arg of args) {
+			if (!arg.includes("replay")) {
+				await message.channel.send(`:x: ${arg} is not a replay.`)
+			}
 			let link = arg + ".log";
 			let response = await axios.get(link, {
 				headers: { "User-Agent": "PorygonTheBot" },
