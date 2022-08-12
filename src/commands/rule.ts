@@ -104,10 +104,10 @@ export default {
 
             //Enforcing ruleValue
             if (ruleValue === "true") boolRuleValue = true;
-            else if (ruleValue === "direct" || ruleValue === "default")
+            else if (ruleValue === "direct" || ruleValue === "default" || ruleValue === "d")
                 ruleValue = "D";
-            else if (ruleValue === "passive") ruleValue = "P";
-            else if (ruleValue === "none") ruleValue = "N";
+            else if (ruleValue === "passive" || ruleValue === "p") ruleValue = "P";
+            else if (ruleValue === "none" || ruleValue === "n") ruleValue = "N";
             else if (ruleValue === "csv") ruleValue = "CSV";
             else if (ruleValue === "sheets" || ruleValue === "space")
                 ruleValue = "SPACE";
