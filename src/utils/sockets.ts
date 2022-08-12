@@ -28,8 +28,8 @@ const sockets: { [key: string]: Socket } = {
     drafthub: {
         name: 'Drafthub',
         link: 'http://drafthub.psim.us',
-        ip: '128.199.170.203:8000',
-        server: 'ws://128.199.170.203:8000/showdown/websocket',
+        ip: 'showdown.home.arjunbrar.tech:8000',
+        server: 'ws://showdown.home.arjunbrar.tech:8000/showdown/websocket',
     },
     clover: {
         name: 'Clover',
