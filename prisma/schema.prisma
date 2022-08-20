@@ -30,6 +30,7 @@ enum System {
 	S
 	DL
 	R
+	L
 }
 
 model League {
@@ -40,7 +41,8 @@ model League {
   	dlId              String?
   	sheetId           String? 
   	system            System      @default(D)
-	rolesChannels     Json?       
+	rolesChannels     Json?
+	logChannelId      String?     
 }
 
 model Rules {

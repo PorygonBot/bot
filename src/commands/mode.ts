@@ -1,6 +1,7 @@
 import axios from "axios";
 import querystring from "querystring";
 import { Message, MessageEmbed, Client } from "discord.js";
+import { System } from "@prisma/client";
 
 import { Prisma } from "../utils";
 
@@ -97,7 +98,7 @@ export default {
             );
         }
 
-        let mode: "" | "D" | "C" | "DM" | "S" | "DL" | "R";
+        let mode: System;
         let discordMode = args[0] ? args[0].toLowerCase() : "";
         let streamChannel = "";
         let sheetsID = "";
@@ -259,6 +260,10 @@ export default {
                     });
                 });
                 break;
+            case "-l":
+            case "-log":
+                mode = "L";
+
             case "-help":
             case "-hlep":
             case "-h":
