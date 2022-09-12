@@ -1,7 +1,7 @@
-import { Guild } from 'discord.js';
+import { Guild, GuildChannel } from 'discord.js';
 
 const getChannel = (server: Guild, channelID: string) => {
-	return server.channels.cache.get(channelID);
+	return server.channels.cache.get(channelID) as GuildChannel;
 };
 
 const randomElement = (list: string[]) => {

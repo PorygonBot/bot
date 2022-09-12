@@ -1,4 +1,4 @@
-import { Message, MessageEmbed, Client } from "discord.js";
+import { Message, EmbedBuilder, Client } from "discord.js";
 import { Rules } from "../types";
 import { Prisma } from "../utils";
 
@@ -14,27 +14,29 @@ export default {
         let league = await Prisma.getLeague(channel.id);
         let leagueName = league?.name;
 
-        let rulesEmbed = new MessageEmbed()
+        let rulesEmbed = new EmbedBuilder()
             .setTitle(`${leagueName}'s Rules`)
             .setDescription(
                 `The rules that have been attributed to ${leagueName}.`
             )
             .setColor(0xffc0cb)
-            .addField("Channel", `<#${rules.channelId}>`)
-            .addField("Recoil", rules.recoil)
-            .addField("Suicide", rules.suicide)
-            .addField("Ability/Item", rules.abilityitem)
-            .addField("Self/Team", rules.selfteam)
-            .addField("Destiny Bond", rules.db)
-            .addField("Spoiler", rules.spoiler.toString())
-            .addField("Ping", rules.ping || "None")
-            .addField("Forfeit", rules.forfeit)
-            .addField("Format", rules.format)
-            .addField("Quirks", rules.quirks.toString())
-            .addField("No Talk", rules.notalk.toString())
-            .addField("Tidbits", rules.tb.toString())
-            .addField("Combine P/D", rules.combine.toString())
-            .addField("Redirect Channel", rules.redirect || "None");
+            .addFields([
+                { name: "Channel", value: `<#${rules.channelId}>` },
+                { name: "Recoil", value: rules.recoil },
+                { name: "Suicide", value: rules.suicide },
+                { name: "Ability/Item", value: rules.abilityitem },
+                { name: "Self/Team", value: rules.selfteam },
+                { name: "Destiny Bond", value: rules.db },
+                { name: "Spoiler", value: rules.spoiler.toString() },
+                { name: "Ping", value: rules.ping || "None" },
+                { name: "Forfeit", value: rules.forfeit },
+                { name: "Format", value: rules.format },
+                { name: "Quirks", value: rules.quirks.toString() },
+                { name: "No Talk", value: rules.notalk.toString() },
+                { name: "Tidbits", value: rules.tb.toString() },
+                { name: "Combine P/D", value: rules.combine.toString() },
+                { name: "Redirect Channel", value: rules.redirect || "None" },
+            ]);
 
         return channel.send({ embeds: [rulesEmbed] });
     },

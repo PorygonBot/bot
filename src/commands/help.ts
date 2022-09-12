@@ -1,5 +1,5 @@
-import { Message, MessageEmbed, Client } from "discord.js";
-import { commandsArr } from "."
+import { Message, EmbedBuilder, Client } from "discord.js";
+import { commandsArr } from ".";
 
 export default {
     name: "help",
@@ -10,7 +10,7 @@ export default {
     async execute(message: Message, args: string[], client: Client) {
         const prefix = "porygon, use ";
 
-        const helpEmbed = new MessageEmbed()
+        const helpEmbed = new EmbedBuilder()
             .setColor("#fc03d7")
             .setTitle("Porygon Help")
             .setURL("https://discord.gg/ZPTMZ8f")
@@ -22,14 +22,16 @@ export default {
             );
         //Adding each command
         for (let command of commandsArr) {
-            helpEmbed.addField(
-                command.name,
-                `${prefix}${command.name} ${command.usage || ""}\n${
-                    command.description
-                }\nAliases: ${
-                    command.aliases ? command.aliases.join(", ") : "None"
-                }`
-            );
+            helpEmbed.addFields([
+                {
+                    name: command.name,
+                    value: `${prefix}${command.name} ${command.usage || ""}\n${
+                        command.description
+                    }\nAliases: ${
+                        command.aliases ? command.aliases.join(", ") : "None"
+                    }`,
+                },
+            ]);
         }
 
         return message.channel.send({ embeds: [helpEmbed] }).catch((e) => {

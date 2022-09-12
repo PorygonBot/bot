@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import { League } from "@prisma/client";
-import { Message, CommandInteraction, Collection } from "discord.js";
+import { Message, CommandInteraction, ChannelType } from "discord.js";
 import { Stats } from "../types";
 import Prisma from "./prisma";
 import { funcs } from "./track";
@@ -257,7 +257,7 @@ const discordUpdate = async (
     if (system === "DM") await message.author.send(finalMessage);
     else if (system === "C" && channelId && message.guild) {
         const channel = funcs.getChannel(message.guild, channelId);
-        if (channel?.isText())
+        if (channel.isTextBased())
             //Checking if it's a text channel instead of a voice channel
             await channel?.send(finalMessage);
     } else {
@@ -483,9 +483,9 @@ const roleUpdate = async (
 
                 if (channelId && message.guild) {
                     const channel = funcs.getChannel(message.guild, channelId);
-                    if (channel?.isText())
+                    if (channel?.isTextBased())
                         //Checking if it's a text channel instead of a voice channel
-                        channel?.send(finalMessage);
+                        channel.send(finalMessage);
                     return;
                 }
             }

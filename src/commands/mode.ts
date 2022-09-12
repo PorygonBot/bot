@@ -1,13 +1,13 @@
 import axios from "axios";
 import querystring from "querystring";
-import { Message, MessageEmbed, Client } from "discord.js";
+import { Message, EmbedBuilder, Client } from "discord.js";
 import { System } from "@prisma/client";
 
 import { Prisma } from "../utils";
 
 const updateDb = async (
     message: Message,
-    mode: "" | "D" | "C" | "DM" | "S" | "DL" | "R",
+    mode: System,
     updateObj: {
         channelId: string;
         system: string;
@@ -27,6 +27,7 @@ const updateDb = async (
         S: "Sheets",
         DL: "DL",
         R: "Roles",
+        L: "Log",
         "": "Default",
     };
 
@@ -92,7 +93,7 @@ export default {
         const channel = message.channel;
         const author = message.author;
 
-        if (message.member && !message.member.permissions.has("MANAGE_ROLES")) {
+        if (message.member && !message.member.permissions.has("ManageRoles")) {
             return channel.send(
                 ":x: You're not a moderator. Ask a moderator to set the mode of this league for you."
             );
@@ -121,28 +122,10 @@ export default {
                     );
                 }
 
-                await updateDb(message, mode, {
-                    channelId: channel.id,
-                    system: mode,
-                    guildId: message.guild?.id,
-                    resultsChannelId: streamChannel,
-                    dlId: dlID,
-                    sheetId: sheetsID,
-                    rolesChannels: rolesChannels,
-                });
                 break;
             case "-dm":
                 mode = "DM";
 
-                await updateDb(message, mode, {
-                    channelId: channel.id,
-                    system: mode,
-                    guildId: message.guild?.id,
-                    resultsChannelId: streamChannel,
-                    dlId: dlID,
-                    sheetId: sheetsID,
-                    rolesChannels: rolesChannels,
-                });
                 break;
             case "-s":
             case "-sheets":
@@ -159,15 +142,6 @@ export default {
                 }
                 sheetsID = sheetsLink.split("/")[5];
 
-                await updateDb(message, mode, {
-                    channelId: channel.id,
-                    system: mode,
-                    guildId: message.guild?.id,
-                    resultsChannelId: streamChannel,
-                    dlId: dlID,
-                    sheetId: sheetsID,
-                    rolesChannels: rolesChannels,
-                });
                 break;
             case "-nl":
             case "-draft-league.nl":
@@ -190,30 +164,12 @@ export default {
                     );
                 }
 
-                await updateDb(message, mode, {
-                    channelId: channel.id,
-                    system: mode,
-                    guildId: message.guild?.id,
-                    resultsChannelId: streamChannel,
-                    dlId: dlID,
-                    sheetId: sheetsID,
-                    rolesChannels: rolesChannels,
-                });
                 break;
             case "-d":
             case "-defualt":
             case "-default":
                 mode = "D";
-                
-                await updateDb(message, mode, {
-                    channelId: channel.id,
-                    system: mode,
-                    guildId: message.guild?.id,
-                    resultsChannelId: streamChannel,
-                    dlId: dlID,
-                    sheetId: sheetsID,
-                    rolesChannels: rolesChannels,
-                });
+
                 break;
             case "-r":
             case "-roles":
@@ -264,12 +220,13 @@ export default {
             case "-log":
                 mode = "L";
 
+                break;
             case "-help":
             case "-hlep":
             case "-h":
             case "help":
             default:
-                const modeEmbed = new MessageEmbed()
+                const modeEmbed = new EmbedBuilder()
                     .setColor("#fc03d7")
                     .setTitle("Porygon Mode Command Info")
                     .setDescription(
@@ -278,30 +235,32 @@ export default {
                     .setThumbnail(
                         "https://images.discordapp.net/avatars/692091256477581423/634148e2b64c4cd5e555d9677188e1e2.png"
                     )
-                    .addField(
-                        "-default",
-                        "Sends the stats in the same channel that the live link was sent in.\nExtra parameters: N/A\nExample: `porygon, use mode -default`"
-                    )
-                    .addField(
-                        "-c",
-                        "Sends the stats to another channel that is provided by the mods.\nExtra parameters: a link to the channel\nExample: `porygon, use mode -c #match-results`"
-                    )
-                    .addField(
-                        "-dm",
-                        "DM's the stats to the user who sent the live link.\nExtra parameters: N/A\nExample: `porygon, use mode -dm`"
-                    )
-                    .addField(
-                        "-sheets",
-                        "Updates a Google Sheet with the stats automatically. Click [here](https://www.notion.so/harshithpersonal/Sheets-Updating-is-Back-13898436a3c648789d9b7aaa788752ed) for info."
-                    )
-                    .addField(
-                        "-dl",
-                        "Updates draft-league.nl page with the stats automatically. Click [here](https://discord.com/channels/685139768840945674/734963749966053376/819300373143486475) for more info."
-                    )
-                    .addField(
-                        "-roles",
-                        "Updates stats to a channel based on the user who sent the link's roles. \nExtra parameters: N/A\nExample: `porygon, use mode -roles`\n`@Test Ping #test-live-links`\n`@Test Ping 2 #test-live-links-2`\n`end`"
-                    );
+                    .addFields([
+                        {
+                            name: "-default",
+                            value: "Sends the stats in the same channel that the live link was sent in.\nExtra parameters: N/A\nExample: `porygon, use mode -default`",
+                        },
+                        {
+                            name: "-c",
+                            value: "Sends the stats to another channel that is provided by the mods.\nExtra parameters: a link to the channel\nExample: `porygon, use mode -c #match-results`",
+                        },
+                        {
+                            name: "-dm",
+                            value: "DM's the stats to the user who sent the live link.\nExtra parameters: N/A\nExample: `porygon, use mode -dm`",
+                        },
+                        {
+                            name: "-sheets",
+                            value: "Updates a Google Sheet with the stats automatically. Click [here](https://www.notion.so/harshithpersonal/Sheets-Updating-is-Back-13898436a3c648789d9b7aaa788752ed) for info.",
+                        },
+                        {
+                            name: "-dl",
+                            value: "Updates draft-league.nl page with the stats automatically. Click [here](https://discord.com/channels/685139768840945674/734963749966053376/819300373143486475) for more info.",
+                        },
+                        {
+                            name: "-roles",
+                            value: "Updates stats to a channel based on the user who sent the link's roles. \nExtra parameters: N/A\nExample: `porygon, use mode -roles`\n`@Test Ping #test-live-links`\n`@Test Ping 2 #test-live-links-2`\n`end`",
+                        },
+                    ]);
                 return message.channel
                     .send({ embeds: [modeEmbed] })
                     .catch((e) => {
@@ -310,5 +269,15 @@ export default {
                         );
                     });
         }
+
+        await updateDb(message, mode, {
+            channelId: channel.id,
+            system: mode,
+            guildId: message.guild?.id,
+            resultsChannelId: streamChannel,
+            dlId: dlID,
+            sheetId: sheetsID,
+            rolesChannels: rolesChannels,
+        });
     },
 };

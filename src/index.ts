@@ -1,7 +1,8 @@
 // Importing required modules
 import * as dotenv from "dotenv";
 import axios from "axios";
-import { Message, GuildMember } from "discord.js";
+import { Message, GuildMember, PermissionResolvable } from "discord.js";
+import { ActivityType } from "discord-api-types/v10";
 import {
     client,
     Prisma,
@@ -21,7 +22,7 @@ client.on("ready", () => {
     client.user!.setActivity(
         `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
         {
-            type: "WATCHING",
+            type: ActivityType.Watching,
         }
     );
 });
@@ -30,7 +31,7 @@ client.on("guildCreate", () => {
     client.user!.setActivity(
         `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
         {
-            type: "WATCHING",
+            type: ActivityType.Watching,
         }
     );
 });
@@ -39,7 +40,7 @@ client.on("guildDelete", () => {
     client.user!.setActivity(
         `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
         {
-            type: "WATCHING",
+            type: ActivityType.Watching,
         }
     );
 });
@@ -77,8 +78,15 @@ const messageFunction = async (message: Message) => {
     const msgStr = message.content;
     const prefix = "porygon, use ";
 
+    const hasSendMessages = !(
+        channel.isDMBased() ||
+        channel
+            .permissionsFor(message.guild?.members.me as GuildMember)
+            .has("SEND_MESSAGES" as PermissionResolvable)
+    );
+
     //If it's a DM, analyze the replay
-    if (channel.type === "DM") {
+    if (channel.isDMBased()) {
         if (
             msgStr.includes("replay.pokemonshowdown.com") &&
             message.author.id !== client.user!.id
@@ -152,12 +160,7 @@ const messageFunction = async (message: Message) => {
                 let rules = await Prisma.getRules(channel.id);
 
                 //Check if bot has SEND_MESSAGES perms in the channel
-                if (
-                    message.channel.type == "GUILD_TEXT" &&
-                    !message.channel
-                        ?.permissionsFor(message.guild?.me as GuildMember)
-                        .has("SEND_MESSAGES")
-                ) {
+                if (hasSendMessages) {
                     rules.notalk = true;
                 }
 
@@ -170,7 +173,7 @@ const messageFunction = async (message: Message) => {
                 client.user!.setActivity(
                     `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
                     {
-                        type: "WATCHING",
+                        type: ActivityType.Watching,
                     }
                 );
                 let tracker = new LiveTracker(
@@ -195,12 +198,7 @@ const messageFunction = async (message: Message) => {
         if (!commandName) return;
 
         //Check if bot has SEND_MESSAGES perms in the channel
-        if (
-            message.channel.type == "GUILD_TEXT" &&
-            !message.channel
-                ?.permissionsFor(message.guild?.me as GuildMember)
-                .has("SEND_MESSAGES")
-        ) {
+        if (hasSendMessages) {
             await message.author.send(
                 `:x: The command that you tried to run in \`${message.guild?.name}\` did not work because Chatot does not have \`Send Messages\` permissions in the channel.`
             );
