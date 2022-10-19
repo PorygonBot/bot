@@ -1,179 +1,153 @@
-import { Message, EmbedBuilder, Client } from "discord.js";
-import { Prisma } from "../utils";
-import { Rules } from "../types";
+import {
+    CommandInteraction,
+    CommandInteractionOptionResolver,
+    TextBasedChannel,
+    GuildMember,
+    ActionRowBuilder,
+    SelectMenuBuilder,
+    Role,
+    GuildBasedChannel,
+} from "discord.js";
+import { consts, Prisma } from "../utils/index.js";
+import { Rule, Rules } from "../types/index.js";
 
 export default {
     name: "rule",
     description:
         "Creates a custom kill rule depending on the parameters. Run command without parameters for more info.",
     usage: "[rule name with hyphen] [parameter]",
-    async execute(message: Message, args: string[], client: Client) {
-        const channel = message.channel;
+    async execute(
+        interaction: CommandInteraction,
+        options: CommandInteractionOptionResolver
+    ) {
+        const channel = interaction.channel as TextBasedChannel;
+        const author = interaction.member as GuildMember;
 
-        //Checking if user is able to change rules
-        if (message.member && !message.member.permissions.has("ManageRoles")) {
-            return channel.send(
-                ":x: You're not a moderator. Ask a moderator to add this person for you."
-            );
+        // If author is not a mod
+        if (author && !author.permissions.has("ManageRoles")) {
+            return interaction.reply({
+                content:
+                    ":x: You're not a moderator. Ask a moderator to set the mode of this league for you.",
+                ephemeral: true,
+            });
+        }
+
+        // If interaction is not run in a server
+        if (!interaction.guild) {
+            return interaction.reply({
+                content: ":x: You are not running this command in a server.",
+                ephemeral: true,
+            });
         }
 
         //Getting rules
         let rules: Rules = await Prisma.getRules(channel.id);
+        let ruleName: Rule = options.getString("rule") as Rule;
 
-        //Help embed
-        const ruleEmbed = new EmbedBuilder()
-            .setTitle("Rule Command Help")
-            .setDescription(
-                "This command is used to set custom kill rules for how each kill is attributed. You can add multiple rules in the same message. The command is as follows:\nporygon, use rule [rule extension] [option]\n\nThese are the rule extensions: "
-            )
-            .setColor(0xffc0cb)
-            .addFields([
-                {
-                    name: "-recoil",
-                    value: "sets the kill rule of a recoil death.\nOptions: none (no kill), passive (passive kill), direct (direct kill).",
-                },
-                {
-                    name: "-suicide",
-                    value: "sets the kill rule of a suicide death.\nOptions: none, passive, direct.",
-                },
-                {
-                    name: "-ability or -item",
-                    value: "sets the kill rule of a kill caused by an ability or item.\nOptions: none, passive, direct.",
-                },
-                {
-                    name: "-self or -team",
-                    value: "sets the kill rule of a kill caused by itself or a teammate.\nOptions: none, passive, direct.",
-                },
-                {
-                    name: "-db",
-                    value: "sets the kill rule of a Destiny Bond death.\nOptions: none, passive, direct.",
-                },
-                {
-                    name: "-spoiler",
-                    value: "changes if stats are spoiler tagged.\nOptions: true, false.",
-                },
-                {
-                    name: "-forfeit",
-                    value: "sets the type of kills attributed after a forfeit.\nOptions: none, passive, direct.",
-                },
-                {
-                    name: "-ping",
-                    value: "sets a rule so that the client @'s this ping when it starts tracking a match.\nOptions: none, @ping.",
-                },
-                {
-                    name: "-format",
-                    value: "changes the way stats are formatted when outputted.\nOptions: csv (comma-separated), sheets (space-separated), tour, default.",
-                },
-                {
-                    name: "-quirks",
-                    value: "sets whether you want quirky messages sent by the bot or not.\nOptions: true, false.",
-                },
-                {
-                    name: "-pingtime",
-                    value: "sets when you want the bot to ping, if at all.\nOptions: sent (immediately after the link is sent), first (immediately as the first turn starts).",
-                },
-                {
-                    name: "-notalk",
-                    value: "sets whether you want the bot to not talk while analyzing a live battle.\nOptions: true, false.",
-                },
-                {
-                    name: "-tb",
-                    value: "sets whether you want extra tidbits in the stats message (replay, history link, etc.).\nOptions: true, false.",
-                },
-                {
-                    name: "-combine",
-                    value: "sets whether you want passive and direct kills combined or separated.\nOptions: true, false",
-                },
-                {
-                    name: "-redirect",
-                    value: "sets the redirect channel if you use a non-Discord updating mode.",
-                },
-            ]);
+        // let row: ActionRow<MessageActionRowComponent>;
+        let row: ActionRowBuilder<SelectMenuBuilder> = new ActionRowBuilder();
+        if (consts.battleRules.includes(ruleName as unknown as string)) {
+            row.addComponents(
+                new SelectMenuBuilder()
+                    .setCustomId("rule-battle")
+                    .setPlaceholder(rules[ruleName] as string)
+                    .addOptions([
+                        {
+                            label: "Direct",
+                            description:
+                                "When this type of death occurs, it gives a direct kill.",
+                            value: "D",
+                        },
+                        {
+                            label: "Passive",
+                            description:
+                                "When this type of death occurs, it gives a passive kill.",
+                            value: "P",
+                        },
+                        {
+                            label: "None",
+                            description:
+                                "When this type of death occurs, it doesn't give a kill.",
+                            value: "N",
+                        },
+                    ])
+            );
+        } else if (consts.boolRules.includes(ruleName)) {
+            row.addComponents(
+                new SelectMenuBuilder()
+                    .setCustomId("rule-bool")
+                    .setPlaceholder(rules[ruleName] as string)
+                    .addOptions([
+                        { label: "True", description: "True", value: "true" },
+                        {
+                            label: "False",
+                            description: "False",
+                            value: "false",
+                        },
+                    ])
+            );
+        } else if (ruleName === "ping") {
+            let pingSelect = new SelectMenuBuilder()
+                .setCustomId("rule-ping")
+                .setPlaceholder(rules[ruleName] as string);
 
-        //Getting an array of only the keys of the rules
-        let ruleKeyArgs = args
-            .filter((arg) => arg.includes("-"))
-            .map((arg) => arg.substring(1, arg.length));
-        if (!ruleKeyArgs.length) {
-            return channel.send({ embeds: [ruleEmbed] });
+            //Gets all roles in the server
+            const rolesWithPing = interaction.guild.roles.cache.filter(
+                (role: Role) => role.name.toLowerCase().includes("ping")
+            );
+            //Adds each role as a select option
+            rolesWithPing.forEach((role: Role) =>
+                pingSelect.addOptions([
+                    {
+                        label: role.name,
+                        description: role.name,
+                        value: role.toString(),
+                    },
+                ])
+            );
+
+            row.addComponents(pingSelect);
+        } else if (ruleName === "redirect") {
+            let channelSelect = new SelectMenuBuilder()
+                .setCustomId("rule-redirect")
+                .setPlaceholder(rules[ruleName] as string);
+
+            //Gets all channels in the server
+            const channelsWithName = interaction.guild.channels.cache.filter(
+                (channel: GuildBasedChannel) =>
+                    (channel.name.toLowerCase().includes("live-links") ||
+                        channel.name.toLowerCase().includes("live-battles")) &&
+                    channel.isTextBased()
+            );
+            //Adds each channel as a select option
+            channelsWithName.forEach((channel: GuildBasedChannel) =>
+                channelSelect.addOptions([
+                    {
+                        label: channel.name,
+                        description: channel.parent?.name,
+                        value: channel.id,
+                    },
+                ])
+            );
+
+            row.addComponents(channelSelect);
+        } else {
+            return await interaction.reply({
+                content: ":x: Not a valid rule.",
+                ephemeral: true,
+            });
         }
 
-        //Setting the new rules
-        for (let ruleKey of ruleKeyArgs) {
-            let ruleValue: string =
-                args[args.indexOf(`-${ruleKey}`) + 1].toLowerCase();
-            let boolRuleValue = false;
+        // //Updating the rules
+        // await Prisma.upsertRules(
+        //     channel.id,
+        //     rules.leagueName,
+        //     rules as unknown as { [key: string]: string | boolean }
+        // );
 
-            //Enforcing ruleValue
-            if (ruleValue === "true") boolRuleValue = true;
-            else if (
-                ruleValue === "direct" ||
-                ruleValue === "default" ||
-                ruleValue === "d"
-            )
-                ruleValue = "D";
-            else if (ruleValue === "passive" || ruleValue === "p")
-                ruleValue = "P";
-            else if (ruleValue === "none" || ruleValue === "n") ruleValue = "N";
-            else if (ruleValue === "csv") ruleValue = "CSV";
-            else if (ruleValue === "sheets" || ruleValue === "space")
-                ruleValue = "SPACE";
-            //Setting the rules
-            switch (ruleKey) {
-                case "recoil":
-                    rules.recoil = ruleValue;
-                    break;
-                case "suicide":
-                    rules.suicide = ruleValue;
-                    break;
-                case "self":
-                case "team":
-                    rules.selfteam = ruleValue;
-                    break;
-                case "ability":
-                case "item":
-                    rules.abilityitem = ruleValue;
-                    break;
-                case "db":
-                    rules.db = ruleValue;
-                    break;
-                case "spoiler":
-                    rules.spoiler = boolRuleValue;
-                    break;
-                case "ping":
-                    rules.ping = ruleValue;
-                    break;
-                case "forfeit":
-                    rules.forfeit = ruleValue;
-                    break;
-                case "format":
-                    rules.format = ruleValue;
-                    break;
-                case "quirks":
-                    rules.quirks = boolRuleValue;
-                    break;
-                case "notalk":
-                    rules.notalk = boolRuleValue;
-                    break;
-                case "tb":
-                    rules.tb = boolRuleValue;
-                    break;
-                case "combine":
-                    rules.combine = boolRuleValue;
-                    break;
-                case "redirect":
-                    rules.redirect = ruleValue;
-                    break;
-            }
-        }
-
-        //Updating the rules
-        await Prisma.upsertRules(
-            channel.id,
-            rules.leagueName,
-            rules as unknown as { [key: string]: string | boolean }
-        );
-
-        return await channel.send("Your rules have been set!");
+        // return await interaction.reply({
+        //     content: "Your rules have been set!",
+        //     ephemeral: true,
+        // });
     },
 };

@@ -1,6 +1,4 @@
-import funcs from './funcs';
-import consts from './consts';
-import ReplayTracker from './ReplayTracker';
-import LiveTracker from './LiveTracker';
+import ReplayTracker from './ReplayTracker.js';
+import LiveTracker from './LiveTracker.js';
 
-export { funcs, consts, ReplayTracker, LiveTracker };
+export { ReplayTracker, LiveTracker };

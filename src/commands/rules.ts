@@ -1,12 +1,12 @@
-import { Message, EmbedBuilder, Client } from "discord.js";
-import { Rules } from "../types";
-import { Prisma } from "../utils";
+import { EmbedBuilder, CommandInteraction, CommandInteractionOptionResolver, TextBasedChannel } from "discord.js";
+import { Rules } from "../types/index.js";
+import { Prisma } from "../utils/index.js";
 
 export default {
     name: "rules",
     description: "Gets a list of the custom kill rules that a league has set.",
-    async execute(message: Message, args: string[], client: Client) {
-        const channel = message.channel;
+    async execute(interaction: CommandInteraction, options: CommandInteractionOptionResolver) {
+        const channel = interaction.channel as TextBasedChannel;
 
         //Getting the rules
         let rules = (await Prisma.getRules(channel.id)) as Rules;

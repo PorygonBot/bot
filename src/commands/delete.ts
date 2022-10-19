@@ -1,39 +1,56 @@
-import { Message, Client } from "discord.js";
-import { Prisma } from "../utils";
-import { Command } from "../types";
+import {
+    CommandInteraction,
+    CommandInteractionOptionResolver,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ActionRow,
+    MessageActionRowComponent,
+    GuildMember,
+} from "discord.js";
+import { Prisma } from "../utils/index.js";
+import { Command } from "../types/index.js";
 
 export default {
     name: "delete",
     description: "Deletes the league's record from the Porygon database",
-    async execute(message: Message, args: string[], client: Client) {
-        const channel = message.channel;
+    async execute(
+        interaction: CommandInteraction,
+        options: CommandInteractionOptionResolver
+    ) {
+        const channel = interaction.channel;
+        const author = interaction.member as GuildMember;
 
-        const league = await Prisma.getLeague(channel.id);
+        if (author && !author.permissions.has("ManageRoles")) {
+            return interaction.reply({
+                content:
+                    ":x: You're not a moderator. Ask a moderator to set the mode of this league for you.",
+                ephemeral: true,
+            });
+        }
+
+        const league = await Prisma.getLeague(channel?.id as string);
 
         if (league) {
-            //Asking for confirmation
-            const filter = (m: Message) => m.author === message.author;
-            let collector = channel.createMessageCollector({
-                filter,
-                max: 1,
-            });
-            await channel.send(
-                `Are you sure you want to delete \`${league.name}\` from the database? All your custom rules and modes will be deleted and cannot be undone (respond with "yes").`
-            );
-            collector.on("collect", async (m: Message) => {
-                if (m.content.toLowerCase() === "yes" && m.author === message.author) {
-                    /* Deleting the rules record first. */
-                    await Prisma.deleteLeague(channel.id);
+            const row = new ActionRowBuilder().addComponents([
+                new ButtonBuilder()
+                    .setCustomId("delete-yes")
+                    .setLabel("Yes")
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId("delete-no")
+                    .setLabel("No")
+                    .setStyle(ButtonStyle.Primary),
+            ]).data as ActionRow<MessageActionRowComponent>;
 
-                    await channel.send(
-                        `\`${league.name}\`'s records have been deleted from the Porygon database permanently.`
-                    );
-				} else {
-					await channel.send("Command ignored. If you'd still like to delete this league, run the command again.")
-				}
+            await interaction.reply({
+                content: `Are you sure you want to delete ${league.name}`,
+                components: [row],
             });
-		} else {
-			return await channel.send(':x: There is no valid league in this channel.')
-		}
+        } else {
+            return await interaction.reply(
+                ":x: There is no valid league in this channel."
+            );
+        }
     },
 } as Command;

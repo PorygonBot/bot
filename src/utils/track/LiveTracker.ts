@@ -2,8 +2,8 @@ import axios from "axios";
 import querystring from "querystring";
 import WebSocket from "ws";
 import { Message } from "discord.js";
-import { Rules, Battle, Stats, Pokemon } from "../../types";
-import { sockets, funcs, consts, update } from "..";
+import { Rules, Battle, Stats, Pokemon } from "../../types/index.js";
+import { sockets, funcs, consts, update } from "../index.js";
 
 class LiveTracker {
     battlelink: string;

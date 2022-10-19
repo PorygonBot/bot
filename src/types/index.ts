@@ -1,9 +1,10 @@
-import Rules from './Rules';
-import Battle from './Battle';
-import Pokemon from './Pokemon';
-import Socket from './Socket';
-import Stats from './Stats';
-import Command from './Command';
-import LogData from './LogData';
+import Rules from './Rules.js';
+import Battle from './Battle.js';
+import Pokemon from './Pokemon.js';
+import Socket from './Socket.js';
+import Stats from './Stats.js';
+import Command from './Command.js';
+import LogData from './LogData.js';
+import Rule from './Rule.js'
 
-export { Rules, Battle, Pokemon, Socket, Stats, Command, LogData };
+export { Rules, Battle, Pokemon, Socket, Stats, Command, LogData, Rule };

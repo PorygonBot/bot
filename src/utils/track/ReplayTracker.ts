@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Rules, Battle, Stats, Pokemon } from "../../types";
-import consts from "./consts";
+import { Rules, Battle, Stats, Pokemon } from "../../types/index.js";
+import consts from "../consts.js";
 
 class ReplayTracker {
     link: string;

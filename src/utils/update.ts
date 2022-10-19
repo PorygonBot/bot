@@ -1,9 +1,9 @@
 import { google } from "googleapis";
 import { League } from "@prisma/client";
 import { Message, CommandInteraction, ChannelType } from "discord.js";
-import { Stats } from "../types";
-import Prisma from "./prisma";
-import { funcs } from "./track";
+import { Stats } from "../types/index.js";
+import Prisma from "./prisma.js";
+import funcs from "./funcs.js";
 import axios from "axios";
 
 //Message Generators

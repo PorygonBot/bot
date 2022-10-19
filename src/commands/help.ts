@@ -1,5 +1,5 @@
-import { Message, EmbedBuilder, Client } from "discord.js";
-import { commandsArr } from ".";
+import { EmbedBuilder, CommandInteraction, CommandInteractionOptionResolver } from "discord.js";
+import { commandsArr } from "./index.js";
 
 export default {
     name: "help",
@@ -7,7 +7,7 @@ export default {
     aliases: ["commands"],
     usage: "[command name]",
     cooldown: 5,
-    async execute(message: Message, args: string[], client: Client) {
+    async execute(interaction: CommandInteraction, options: CommandInteractionOptionResolver) {
         const prefix = "porygon, use ";
 
         const helpEmbed = new EmbedBuilder()
@@ -34,9 +34,11 @@ export default {
             ]);
         }
 
-        return message.channel.send({ embeds: [helpEmbed] }).catch((e) => {
-            message.channel.send(
-                ":x: You need to enable embeds in this channel to use this command."
+        return await interaction.reply({ embeds: [helpEmbed] }).catch(async (e) => {
+            await interaction.reply({
+                content: ":x: You need to enable embeds in this channel to use this command.",
+                ephemeral: true
+            }
             );
         });
     },

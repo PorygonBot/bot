@@ -1,7 +1,12 @@
 // Importing required modules
 import * as dotenv from "dotenv";
 import axios from "axios";
-import { Message, GuildMember, PermissionResolvable } from "discord.js";
+import {
+    Message,
+    GuildMember,
+    PermissionResolvable,
+    CommandInteractionOptionResolver,
+} from "discord.js";
 import { ActivityType } from "discord-api-types/v10";
 import {
     client,
@@ -10,9 +15,8 @@ import {
     LiveTracker,
     sockets,
     commands,
-    slashAnalyzeUpdate,
-} from "./utils";
-import { Battle, Command } from "./types";
+} from "./utils/index.js";
+import { Battle, Command } from "./types/index.js";
 // Setting things up
 dotenv.config();
 
@@ -48,28 +52,21 @@ client.on("guildDelete", () => {
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
 
-    let valueLink = interaction.options.data[0].value as string;
-    let link = valueLink + ".log";
-    let response = await axios
-        .get(link, {
-            headers: { "User-Agent": "PorygonTheBot" },
-        })
-        .catch((e) => console.error(e));
-    let data = response?.data;
+    //Getting info from the message if it's not a live link
+    const commandName = interaction.commandName;
+    const options = interaction.options as CommandInteractionOptionResolver;
 
-    //Getting the rules
-    let rules = await Prisma.getRules(interaction.channelId);
-    rules.isSlash = true;
+    //Getting the actual command
+    const command =
+        commands.get(commandName) ||
+        commands.find(
+            (cmd: Command) =>
+                (cmd.aliases && cmd.aliases.includes(commandName)) as boolean
+        );
+    if (!command) return;
 
-    await interaction.deferReply();
-    let replayer = new ReplayTracker(valueLink, rules);
-    const matchJson = await replayer.track(data);
-
-    await slashAnalyzeUpdate(matchJson, interaction);
-    // await message.channel.send(
-    //     `Battle between \`${matchJson.playerNames[0]}\` and \`${matchJson.playerNames[1]}\` is complete and info has been updated!`
-    // );
-    console.log(`${link} has been analyzed!`);
+    //Running the command
+    await command.execute(interaction, options, client);
 });
 
 //When a message is sent at any time
@@ -78,11 +75,15 @@ const messageFunction = async (message: Message) => {
     const msgStr = message.content;
     const prefix = "porygon, use ";
 
+    console.log();
+    console.log("Message sent.");
+    console.log(msgStr);
+
     const hasSendMessages = !(
         channel.isDMBased() ||
         channel
             .permissionsFor(message.guild?.members.me as GuildMember)
-            .has("SEND_MESSAGES" as PermissionResolvable)
+            .has("SendMessages" as PermissionResolvable)
     );
 
     //If it's a DM, analyze the replay
@@ -120,6 +121,7 @@ const messageFunction = async (message: Message) => {
         channel.name.includes("live-links") ||
         channel.name.includes("live-battles")
     ) {
+        console.log("Message sent in correct type of channel.");
         try {
             //Extracting battlelink from the message
             const urlRegex = /(https?:\/\/[^ ]*)/;
@@ -164,6 +166,7 @@ const messageFunction = async (message: Message) => {
                     rules.notalk = true;
                 }
 
+                console.log("Battle link received.");
                 if (!rules.notalk)
                     await channel
                         .send("Joining the battle...")
@@ -183,6 +186,7 @@ const messageFunction = async (message: Message) => {
                     message
                 );
                 await tracker.track();
+                console.log("tracking");
             }
         } catch (e) {
             console.error(e);

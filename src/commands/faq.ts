@@ -1,11 +1,11 @@
-import { Message, Client, EmbedBuilder } from "discord.js";
-import { Command } from "../types";
+import { EmbedBuilder, CommandInteraction, CommandInteractionOptionResolver } from "discord.js";
+import { Command } from "../types/index.js";
 
 export default {
     name: "faq",
     description:
         "An FAQ regarding setup of the bot and about the bot in general.",
-    execute(message: Message, args: string[], client: Client) {
+    async execute(interaction: CommandInteraction, options: CommandInteractionOptionResolver) {
         const faqEmbed = new EmbedBuilder()
             .setColor("#fc03d7")
             .setTitle("Porygon FAQ")
@@ -43,9 +43,11 @@ export default {
                 },
             ]);
 
-        return message.channel.send({ embeds: [faqEmbed] }).catch((e) => {
-            message.channel.send(
-                ":x: You need to enable embeds in this channel to use this command."
+        return await interaction.reply({ embeds: [faqEmbed] }).catch(async (e) => {
+            await interaction.reply({
+                content: ":x: You need to enable embeds in this channel to use this command.",
+                ephemeral: true
+            }
             );
         });
     },

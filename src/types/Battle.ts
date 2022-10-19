@@ -1,4 +1,4 @@
-import Pokemon from './Pokemon';
+import Pokemon from './Pokemon.js';
 
 class Battle {
 	p1: string;

@@ -1,5 +1,6 @@
 # Porygon
 ![](https://images.discordapp.net/avatars/692091256477581423/634148e2b64c4cd5e555d9677188e1e2.png?size=512)
+
 A Discord bot that tracks stats in a Pokemon Showdown battle.
 
 ## Usage
@@ -20,7 +21,7 @@ $ git clone git@github.com:PorygonBot/bot-ts.git
 $ cd bot-ts
 $ touch .env
 $ npm install
-$ npx run migrate
+$ npm run migrate
 $ npm run start
 ```
 Your `.env` should look like this:

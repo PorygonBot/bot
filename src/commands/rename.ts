@@ -1,32 +1,50 @@
-import { Message, Client } from "discord.js";
+import {
+    CommandInteraction,
+    CommandInteractionOptionResolver,
+    GuildMember,
+    TextBasedChannel,
+} from "discord.js";
 
-import { Prisma } from "../utils";
+import { Prisma } from "../utils/index.js";
 
 export default {
     name: "rename",
     description: "Renames your league in the Porygon database",
     usage: "[new name, including spaces and all special characters]",
-    async execute(message: Message, args: string[], client: Client) {
-        const channel = message.channel;
-        const newName = args.join(" ");
+    async execute(
+        interaction: CommandInteraction,
+        options: CommandInteractionOptionResolver
+    ) {
+        const channel = interaction.channel as TextBasedChannel;
+        const newName = options.getString("name") as string;
+        const author = interaction.member as GuildMember;
+
+        if (author && !author.permissions.has("ManageRoles")) {
+            return interaction.reply({
+                content:
+                    ":x: You're not a moderator. Ask a moderator to set the mode of this league for you.",
+                ephemeral: true,
+            });
+        }
 
         //Getting league info
         const league = await Prisma.getLeague(channel.id);
 
         //Updating the league's record with the new name
-		if (league) {
-			await Prisma.upsertLeague({
-				channelId: league.channelId,
-				system: league.system,
-				leagueName: newName,
-			});
+        if (league) {
+            await Prisma.upsertLeague({
+                channelId: league.channelId,
+                system: league.system,
+                leagueName: newName,
+            });
 
-			return await channel.send(
-				`Changed this league's name from \`${league.name}\` to \`${newName}\`!`
-			);
-		}
-		else {
-			return await channel.send(":x: There is no valid league in this channel.")
-		}
+            return await interaction.reply(
+                `Changed this league's name from \`${league.name}\` to \`${newName}\`!`
+            );
+        } else {
+            return await interaction.reply(
+                ":x: There is no valid league in this channel."
+            );
+        }
     },
 };

@@ -1,9 +1,11 @@
-import client from './client';
-import Prisma from './prisma';
-import sockets from './sockets';
-import { update, slashAnalyzeUpdate } from './update'
-import { funcs, consts, ReplayTracker, LiveTracker } from './track';
-import {commands, commandsArr} from '../commands';
+import client from "./client.js";
+import Prisma from "./prisma.js";
+import sockets from "./sockets.js";
+import { update, slashAnalyzeUpdate } from "./update.js";
+import funcs from "./funcs.js";
+import consts from "./consts.js";
+import { ReplayTracker, LiveTracker } from "./track/index.js";
+import { commands, commandsArr } from "../commands/index.js";
 
 export {
     client,
@@ -16,5 +18,5 @@ export {
     update,
     slashAnalyzeUpdate,
     commands,
-    commandsArr
+    commandsArr,
 };
