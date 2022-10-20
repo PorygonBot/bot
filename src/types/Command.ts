@@ -6,6 +6,7 @@ interface Command {
     description: string;
     usage?: string;
     execute: Function;
+    buttonResponse?: Function;
 }
 
 export default Command;

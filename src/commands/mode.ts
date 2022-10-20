@@ -32,7 +32,6 @@ const updateDb = async (
         S: "Sheets",
         DL: "DL",
         R: "Roles",
-        L: "Log",
         "": "Default",
     };
 
@@ -56,22 +55,24 @@ const updateDb = async (
     } else {
         // Gives league a default name
         let leagueName = channel.id;
+        updateObj.leagueName = leagueName;
         await Prisma.upsertLeague(updateObj);
 
         console.log(
-            `${leagueName}'s mode has been changed to ${
+            `${leagueName}'s mode has been set to ${
                 modes[mode] || "Default"
             } mode!`
         );
-        return await interaction.reply(
-            `\`${leagueName}\`'s mode has been changed to ${
+        return await interaction.reply({
+            content: `\`${leagueName}\`'s mode has been set to ${
                 modes[mode] || "Default"
             } mode! ${
                 modes[mode] === "Sheets"
                     ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
                     : ""
-            }`
-        );
+            }`,
+            ephemeral: true,
+        });
     }
 };
 
@@ -95,20 +96,14 @@ export default {
             });
         }
 
-        let mode = options.getString("mode") as System;
+        let mode = options.getString("method") as System;
         let streamChannel = options.getChannel("channel");
         let sheetsID = "";
         let dlID = "";
         let rolesChannels = {} as { [key: string]: string };
         switch (mode) {
             case "C":
-                if (
-                    !(
-                        streamChannel //&&
-                        // interaction.guild &&
-                        // interaction.guild.channels.cache.get(streamChannel.id)
-                    )
-                ) {
+                if (!streamChannel) {
                     return interaction.reply(
                         ":x: You didn't link a valid channel. Please run the command again and link the channel you'd like the stats to be put in."
                     );
@@ -169,9 +164,6 @@ export default {
                 break;
             case "R":
                 //TODO find a way to implement roles
-                break;
-            case "L":
-                //TODO do log later
                 break;
             default:
                 break;

@@ -62,19 +62,20 @@ class Prisma {
     }
 
     static async deleteLeague(channelId: string) {
-        if (await this.getLeague(channelId))
+        let league = await this.getLeague(channelId);
+        if (league) {
             await prisma.league.delete({
                 where: {
                     channelId: channelId,
                 },
             });
 
-        if (await this.getRules(channelId))
             await prisma.rules.delete({
                 where: {
                     channelId: channelId,
                 },
-            });
+            }).catch((e) => console.log(`${league?.name} doesn't have any rules to delete.`));
+        }
     }
 
     static async upsertRules(

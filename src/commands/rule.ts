@@ -43,6 +43,7 @@ export default {
         //Getting rules
         let rules: Rules = await Prisma.getRules(channel.id);
         let ruleName: Rule = options.getString("rule") as Rule;
+        console.log(ruleName);
 
         // let row: ActionRow<MessageActionRowComponent>;
         let row: ActionRowBuilder<SelectMenuBuilder> = new ActionRowBuilder();
@@ -138,6 +139,8 @@ export default {
             });
         }
 
+        
+
         // //Updating the rules
         // await Prisma.upsertRules(
         //     channel.id,
@@ -146,7 +149,7 @@ export default {
         // );
 
         // return await interaction.reply({
-        //     content: "Your rules have been set!",
+        //     content: "Your rule has been set!",
         //     ephemeral: true,
         // });
     },

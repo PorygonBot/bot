@@ -1,11 +1,19 @@
-import { EmbedBuilder, CommandInteraction, CommandInteractionOptionResolver, TextBasedChannel } from "discord.js";
+import {
+    EmbedBuilder,
+    CommandInteraction,
+    CommandInteractionOptionResolver,
+    TextBasedChannel,
+} from "discord.js";
 import { Rules } from "../types/index.js";
 import { Prisma } from "../utils/index.js";
 
 export default {
     name: "rules",
     description: "Gets a list of the custom kill rules that a league has set.",
-    async execute(interaction: CommandInteraction, options: CommandInteractionOptionResolver) {
+    async execute(
+        interaction: CommandInteraction,
+        options: CommandInteractionOptionResolver
+    ) {
         const channel = interaction.channel as TextBasedChannel;
 
         //Getting the rules
@@ -38,6 +46,6 @@ export default {
                 { name: "Redirect Channel", value: rules.redirect || "None" },
             ]);
 
-        return channel.send({ embeds: [rulesEmbed] });
+        return interaction.reply({ embeds: [rulesEmbed], ephemeral: true });
     },
 };

@@ -50,23 +50,25 @@ client.on("guildDelete", () => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isCommand()) return;
+    if (interaction.isCommand()) {
+        //Getting info from the message if it's not a live link
+        const commandName = interaction.commandName;
+        const options = interaction.options;
 
-    //Getting info from the message if it's not a live link
-    const commandName = interaction.commandName;
-    const options = interaction.options as CommandInteractionOptionResolver;
+        //Getting the actual command
+        const command = commands.get(commandName);
+        if (!command) return;
 
-    //Getting the actual command
-    const command =
-        commands.get(commandName) ||
-        commands.find(
-            (cmd: Command) =>
-                (cmd.aliases && cmd.aliases.includes(commandName)) as boolean
-        );
-    if (!command) return;
+        //Running the command
+        await command.execute(interaction, options);
+    } else if (interaction.isButton() && interaction.message.interaction) {
+        const commandName = interaction.message.interaction.commandName;
 
-    //Running the command
-    await command.execute(interaction, options, client);
+        const command = commands.get(commandName);
+        if (!(command && command.buttonResponse)) return;
+
+        await command.buttonResponse(interaction)
+    }
 });
 
 //When a message is sent at any time
@@ -74,10 +76,6 @@ const messageFunction = async (message: Message) => {
     const channel = message.channel;
     const msgStr = message.content;
     const prefix = "porygon, use ";
-
-    console.log();
-    console.log("Message sent.");
-    console.log(msgStr);
 
     const hasSendMessages = !(
         channel.isDMBased() ||
@@ -121,7 +119,6 @@ const messageFunction = async (message: Message) => {
         channel.name.includes("live-links") ||
         channel.name.includes("live-battles")
     ) {
-        console.log("Message sent in correct type of channel.");
         try {
             //Extracting battlelink from the message
             const urlRegex = /(https?:\/\/[^ ]*)/;

@@ -29,7 +29,6 @@ export default {
 
         //Getting league info
         const league = await Prisma.getLeague(channel.id);
-
         //Updating the league's record with the new name
         if (league) {
             await Prisma.upsertLeague({
@@ -38,9 +37,10 @@ export default {
                 leagueName: newName,
             });
 
-            return await interaction.reply(
-                `Changed this league's name from \`${league.name}\` to \`${newName}\`!`
-            );
+            return await interaction.reply({
+                content: `Changed this league's name from \`${league.name}\` to \`${newName}\`!`,
+                ephemeral: true,
+            });
         } else {
             return await interaction.reply(
                 ":x: There is no valid league in this channel."

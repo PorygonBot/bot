@@ -7,6 +7,8 @@ import {
     ActionRow,
     MessageActionRowComponent,
     GuildMember,
+    ButtonComponent,
+    ButtonInteraction,
 } from "discord.js";
 import { Prisma } from "../utils/index.js";
 import { Command } from "../types/index.js";
@@ -29,28 +31,70 @@ export default {
             });
         }
 
-        const league = await Prisma.getLeague(channel?.id as string);
+        if (!channel)
+            return await interaction.reply({
+                content: ":x: Command was not run in a channel..",
+                ephemeral: true,
+            });
+
+        const league = await Prisma.getLeague(channel.id);
 
         if (league) {
             const row = new ActionRowBuilder().addComponents([
                 new ButtonBuilder()
                     .setCustomId("delete-yes")
                     .setLabel("Yes")
-                    .setStyle(ButtonStyle.Primary),
+                    .setStyle(ButtonStyle.Success),
                 new ButtonBuilder()
                     .setCustomId("delete-no")
                     .setLabel("No")
-                    .setStyle(ButtonStyle.Primary),
-            ]).data as ActionRow<MessageActionRowComponent>;
+                    .setStyle(ButtonStyle.Danger),
+            ]) as ActionRowBuilder<ButtonBuilder>;
 
             await interaction.reply({
                 content: `Are you sure you want to delete ${league.name}`,
                 components: [row],
+                ephemeral: true,
             });
         } else {
-            return await interaction.reply(
-                ":x: There is no valid league in this channel."
+            return await interaction.reply({
+                content: ":x: There is no valid league in this channel.",
+                ephemeral: true,
+            });
+        }
+    },
+    async buttonResponse(interaction: ButtonInteraction) {
+        const name = interaction.customId;
+
+        if (!interaction.channel)
+            return await interaction.reply({
+                content: ":x: Command was not run in a channel..",
+                ephemeral: true,
+            });
+        const league = await Prisma.getLeague(interaction.channel.id);
+
+        if (!league)
+            return await interaction.reply({
+                content: ":x: There is no valid league in this channel.",
+                ephemeral: true,
+            });
+
+        if (name.endsWith("yes")) {
+            await interaction.reply({
+                content: "Deleting...",
+                ephemeral: true,
+            });
+
+            await Prisma.deleteLeague(interaction.channel.id);
+
+            return await interaction.editReply(
+                `\`${league.name}\` has been deleted.`
             );
         }
+
+        return await interaction.reply({
+            content: "Command cancelled.",
+            ephemeral: true,
+        });
     },
 } as Command;
