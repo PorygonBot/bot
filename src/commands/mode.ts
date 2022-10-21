@@ -43,15 +43,16 @@ const updateDb = async (
                 modes[mode] || "Default"
             } mode!`
         );
-        return await interaction.reply(
-            `\`${league.name}\`'s mode has been changed to ${
+        return await interaction.reply({
+            content: `\`${league.name}\`'s mode has been changed to ${
                 modes[mode] || "Default"
             } mode! ${
                 modes[mode] === "Sheets"
                     ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
                     : ""
-            }`
-        );
+            }`,
+            ephemeral: true,
+        });
     } else {
         // Gives league a default name
         let leagueName = channel.id;
@@ -104,9 +105,11 @@ export default {
         switch (mode) {
             case "C":
                 if (!streamChannel) {
-                    return interaction.reply(
-                        ":x: You didn't link a valid channel. Please run the command again and link the channel you'd like the stats to be put in."
-                    );
+                    return interaction.reply({
+                        content:
+                            ":x: You didn't link a valid channel. Please run the command again and link the channel you'd like the stats to be put in.",
+                        ephemeral: true,
+                    });
                 }
                 break;
             case "DM":
@@ -121,9 +124,11 @@ export default {
                         )
                     )
                 ) {
-                    return interaction.reply(
-                        ":x: This is not a Google Sheets link. Please copy-paste the URL of your Google Sheets file."
-                    );
+                    return interaction.reply({
+                        content:
+                            ":x: This is not a Google Sheets link. Please copy-paste the URL of your Google Sheets file.",
+                        ephemeral: true,
+                    });
                 }
                 sheetsID = sheetsLink.split("/")[5];
 
@@ -138,15 +143,20 @@ export default {
                         )
                     )
                 ) {
-                    return interaction.reply(
-                        ":x: This is not a valid draft-league.nl public URL."
-                    );
+                    return interaction.reply({
+                        content:
+                            ":x: This is not a valid draft-league.nl public URL.",
+                        ephemeral: true,
+                    });
                 }
 
                 let dlParams = new URLSearchParams(dlLink.split("?")[1]);
                 let dlIDTemp = dlParams.get("league");
                 if (!dlIDTemp)
-                    return interaction.reply(":x: League ID not found.");
+                    return interaction.reply({
+                        content: ":x: League ID not found.",
+                        ephemeral: true,
+                    });
                 dlID = dlIDTemp;
 
                 const dlResponse = await axios.get(
@@ -157,9 +167,11 @@ export default {
                 );
                 const dlData = dlResponse.data;
                 if (!dlData.mod_discords.includes(`<@${author.id}>`)) {
-                    return interaction.reply(
-                        ":x: You're not a moderator on the website for the given league."
-                    );
+                    return interaction.reply({
+                        content:
+                            ":x: You're not a moderator on the website for the given league.",
+                        ephemeral: true,
+                    });
                 }
                 break;
             case "R":
