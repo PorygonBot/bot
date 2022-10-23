@@ -61,13 +61,16 @@ client.on("interactionCreate", async (interaction) => {
 
         //Running the command
         await command.execute(interaction, options);
-    } else if (interaction.isButton() && interaction.message.interaction) {
+    } else if (
+        (interaction.isButton() || interaction.isSelectMenu()) &&
+        interaction.message.interaction
+    ) {
         const commandName = interaction.message.interaction.commandName;
 
         const command = commands.get(commandName);
         if (!(command && command.buttonResponse)) return;
 
-        await command.buttonResponse(interaction)
+        await command.buttonResponse(interaction);
     }
 });
 

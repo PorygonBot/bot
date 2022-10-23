@@ -7,9 +7,12 @@ import {
     SelectMenuBuilder,
     Role,
     GuildBasedChannel,
+    SelectMenuInteraction,
 } from "discord.js";
 import { consts, Prisma } from "../utils/index.js";
 import { Rule, Rules } from "../types/index.js";
+import { RegularExpressionLiteral } from "typescript";
+import { StatsFormat } from "@prisma/client";
 
 export default {
     name: "rule",
@@ -43,47 +46,54 @@ export default {
         //Getting rules
         let rules: Rules = await Prisma.getRules(channel.id);
         let ruleName: Rule = options.getString("rule") as Rule;
-        console.log(ruleName);
 
-        // let row: ActionRow<MessageActionRowComponent>;
         let row: ActionRowBuilder<SelectMenuBuilder> = new ActionRowBuilder();
         if (consts.battleRules.includes(ruleName as unknown as string)) {
             row.addComponents(
                 new SelectMenuBuilder()
-                    .setCustomId("rule-battle")
-                    .setPlaceholder(rules[ruleName] as string)
+                    .setCustomId(`rule-${ruleName}`)
+                    // .setPlaceholder(rules[ruleName] as string)
                     .addOptions([
                         {
                             label: "Direct",
                             description:
                                 "When this type of death occurs, it gives a direct kill.",
                             value: "D",
+                            default: rules[ruleName] === "D",
                         },
                         {
                             label: "Passive",
                             description:
                                 "When this type of death occurs, it gives a passive kill.",
                             value: "P",
+                            default: rules[ruleName] === "P",
                         },
                         {
                             label: "None",
                             description:
                                 "When this type of death occurs, it doesn't give a kill.",
                             value: "N",
+                            default: rules[ruleName] === "N",
                         },
                     ])
             );
         } else if (consts.boolRules.includes(ruleName)) {
             row.addComponents(
                 new SelectMenuBuilder()
-                    .setCustomId("rule-bool")
-                    .setPlaceholder(rules[ruleName] as string)
+                    .setCustomId(`rule-${ruleName}`)
+                    // .setPlaceholder(rules[ruleName] as string)
                     .addOptions([
-                        { label: "True", description: "True", value: "true" },
+                        {
+                            label: "True",
+                            description: "True",
+                            value: "true",
+                            default: rules[ruleName] == true,
+                        },
                         {
                             label: "False",
                             description: "False",
                             value: "false",
+                            default: rules[ruleName] == false,
                         },
                     ])
             );
@@ -96,6 +106,7 @@ export default {
             const rolesWithPing = interaction.guild.roles.cache.filter(
                 (role: Role) => role.name.toLowerCase().includes("ping")
             );
+            console.log(rules[ruleName]);
             //Adds each role as a select option
             rolesWithPing.forEach((role: Role) =>
                 pingSelect.addOptions([
@@ -116,8 +127,8 @@ export default {
             //Gets all channels in the server
             const channelsWithName = interaction.guild.channels.cache.filter(
                 (channel: GuildBasedChannel) =>
-                    (channel.name.toLowerCase().includes("live-links") ||
-                        channel.name.toLowerCase().includes("live-battles")) &&
+                    (channel.name.toLowerCase().includes("replays") ||
+                        channel.name.toLowerCase().includes("results")) &&
                     channel.isTextBased()
             );
             //Adds each channel as a select option
@@ -127,6 +138,7 @@ export default {
                         label: channel.name,
                         description: channel.parent?.name,
                         value: channel.id,
+                        default: rules[ruleName] === channel.id,
                     },
                 ])
             );
@@ -138,19 +150,92 @@ export default {
                 ephemeral: true,
             });
         }
+        return await interaction.reply({
+            content: `What would you like \`${ruleName}\` to be?`,
+            components: [row],
+            ephemeral: true,
+        });
+    },
+    async buttonResponse(interaction: SelectMenuInteraction) {
+        if (!interaction.channel)
+            return await interaction.reply({
+                content: ":x: Command was not run in a channel.",
+                ephemeral: true,
+            });
+        if (!interaction.message.interaction) {
+            return await interaction.reply({
+                content: ":x: This is not a reply to a previous interaction.",
+                ephemeral: true,
+            });
+        }
 
-        
+        let rules: Rules = await Prisma.getRules(interaction.channel.id);
+        let ruleKey: Rule = interaction.customId.split("-")[1] as Rule;
+        let ruleValue = interaction.values[0];
+        if (ruleValue === "D" || ruleValue === "P" || ruleValue === "N") {
+            // rules[ruleKey] = ruleValue;
+            switch (ruleKey) {
+                case "recoil":
+                    rules.recoil = ruleValue;
+                    break;
+                case "suicide":
+                    rules.suicide = ruleValue;
+                    break;
+                case "selfteam":
+                    rules.selfteam = ruleValue;
+                    break;
+                case "abilityitem":
+                    rules.abilityitem = ruleValue;
+                    break;
+                case "db":
+                    rules.db = ruleValue;
+                    break;
+                case "forfeit":
+                    rules.forfeit = ruleValue;
+                    break;
+            }
+        } else if (ruleValue === "true" || ruleValue === "false") {
+            let boolRuleValue = ruleValue === "true";
+            switch (ruleKey) {
+                case "spoiler":
+                    rules.spoiler = boolRuleValue;
+                    break;
+                case "quirks":
+                    rules.quirks = boolRuleValue;
+                    break;
+                case "notalk":
+                    rules.notalk = boolRuleValue;
+                    break;
+                case "tb":
+                    rules.tb = boolRuleValue;
+                    break;
+                case "combine":
+                    rules.combine = boolRuleValue;
+                    break;
+            }
+        } else {
+            switch (ruleKey) {
+                case "ping":
+                    rules.ping = ruleValue;
+                    break;
+                case "format":
+                    rules.format = ruleValue as StatsFormat;
+                    break;
+                case "redirect":
+                    rules.redirect = ruleValue;
+                    break;
+            }
+        }
 
-        // //Updating the rules
-        // await Prisma.upsertRules(
-        //     channel.id,
-        //     rules.leagueName,
-        //     rules as unknown as { [key: string]: string | boolean }
-        // );
+        //Updating the rules
+        await Prisma.upsertRules(
+            interaction.channel.id,
+            rules.leagueName,
+            rules as unknown as { [key: string]: string | boolean }
+        );
 
-        // return await interaction.reply({
-        //     content: "Your rule has been set!",
-        //     ephemeral: true,
-        // });
+        return await interaction.reply({
+            content: "Your rule has been set!",
+        });
     },
 };

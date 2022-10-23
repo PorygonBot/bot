@@ -236,7 +236,7 @@ const discordUpdate = async (
     let finalMessage = "";
 
     //finally sending players the info
-    if (info.rules.format === "Tour") {
+    if (info.rules.format === "TOUR") {
         if (info.rules.spoiler) finalMessage = `||${message1}||`;
         else finalMessage = message1;
     } else {
@@ -522,7 +522,7 @@ const slashAnalyzeUpdate = async (
     let finalMessage = "";
 
     //finally sending players the info
-    if (info.rules.format === "Tour") {
+    if (info.rules.format === "TOUR") {
         if (info.rules.spoiler) finalMessage = `||${message1}||`;
         else finalMessage = message1;
     } else {

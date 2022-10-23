@@ -1,21 +1,23 @@
+import { KillType, StatsFormat } from "@prisma/client";
+
 interface Rules {
-    channelId: string,
-	leagueName: string,
-	recoil: string,
-	suicide: string,
-	abilityitem: string,
-	selfteam: string,
-	db: string,
-	spoiler: boolean,
-	ping: string,
-	forfeit: string,
-	format: string,
-	quirks: boolean,
-	notalk: boolean,
-	tb: boolean,
-	combine: boolean,
-	redirect: string,
-	isSlash?: boolean,
+    channelId: string;
+    leagueName: string;
+    recoil: KillType;
+    suicide: KillType;
+    abilityitem: KillType;
+    selfteam: KillType;
+    db: KillType;
+    spoiler: boolean;
+    ping: string;
+    forfeit: KillType;
+    format: StatsFormat;
+    quirks: boolean;
+    notalk: boolean;
+    tb: boolean;
+    combine: boolean;
+    redirect: string;
+    isSlash?: boolean;
 }
 
-export default Rules
+export default Rules;
