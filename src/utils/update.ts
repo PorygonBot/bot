@@ -552,7 +552,10 @@ const slashAnalyzeUpdate = async (
     //     discordUpdate(matchJson, message, league);
     // }
 
-    await interaction.editReply(finalMessage);
+    if (interaction.deferred)
+        return await interaction.editReply(finalMessage);
+
+    return await interaction.reply(finalMessage);
 };
 const update = async (matchJson: Stats, message: Message) => {
     const league = await Prisma.getLeague(message.channel.id);
