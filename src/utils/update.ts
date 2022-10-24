@@ -1,6 +1,6 @@
 
-import { Message, CommandInteraction, ChannelType } from "discord.js";
-import { Stats } from "../types/index.js";
+import { Message, CommandInteraction } from "discord.js";
+import { Stats, League } from "../types/index.js";
 import Prisma from "./prisma.js";
 import funcs from "./funcs.js";
 import axios from "axios";
