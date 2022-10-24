@@ -16,12 +16,14 @@ export default {
         options: CommandInteractionOptionResolver
     ) {
         const replayLink = options.getString("replay") as string;
+        const urlRegex = /(https?:\/\/[^ ]*)/;
+        const links = replayLink.match(urlRegex);
 
-        if (!replayLink.includes("replay")) {
+        if (!(replayLink.includes("replay") && links)) {
             return await interaction.reply(`:x: ${replayLink} is not a replay.`);
         }
         interaction.deferReply();
-        
+
         let link = replayLink + ".log";
         let response = await axios.get(link, {
             headers: { "User-Agent": "PorygonTheBot" },
