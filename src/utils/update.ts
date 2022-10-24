@@ -540,6 +540,19 @@ const slashAnalyzeUpdate = async (
         }`;
     }
 
+    // if (info.rules.redirect) {
+    //     league.resultsChannelId = info.rules.redirect.substring(
+    //         2,
+    //         info.rules.redirect.length - 1
+    //     );
+    //     league.system = "C";
+    //     league.resultsChannelId = info.rules.redirect.substring(
+    //         2,
+    //         info.rules.redirect.length - 1
+    //     );
+    //     discordUpdate(matchJson, message, league);
+    // }
+
     await interaction.editReply(finalMessage);
 };
 const update = async (matchJson: Stats, message: Message) => {

@@ -144,6 +144,39 @@ export default {
             );
 
             row.addComponents(channelSelect);
+        } else if (ruleName === "format") {
+            row.addComponents(
+                new SelectMenuBuilder()
+                    .setCustomId(`rule-${ruleName}`)
+                    // .setPlaceholder(rules[ruleName] as string)
+                    .addOptions([
+                        {
+                            label: "Default",
+                            description: "The default formatting for stats",
+                            value: "D",
+                            default: rules[ruleName] === "D",
+                        },
+                        {
+                            label: "CSV",
+                            description: "Stats separated by commas.",
+                            value: "CSV",
+                            default: rules[ruleName] === "CSV",
+                        },
+                        {
+                            label: "Spaced",
+                            description: "Stats separated by spaces.",
+                            value: "Space",
+                            default: rules[ruleName] === "SPACE",
+                        },
+                        {
+                            label: "Tour",
+                            description:
+                                "All stats stacked with CSV without any spacing or tidbits.",
+                            value: "TOUR",
+                            default: rules[ruleName] == "TOUR",
+                        },
+                    ])
+            );
         } else {
             return await interaction.reply({
                 content: ":x: Not a valid rule.",
