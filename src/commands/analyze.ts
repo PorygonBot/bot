@@ -17,10 +17,11 @@ export default {
     ) {
         const replayLink = options.getString("replay") as string;
 
-        interaction.deferReply();
         if (!replayLink.includes("replay")) {
-            await interaction.editReply(`:x: ${replayLink} is not a replay.`);
+            return await interaction.reply(`:x: ${replayLink} is not a replay.`);
         }
+        interaction.deferReply();
+        
         let link = replayLink + ".log";
         let response = await axios.get(link, {
             headers: { "User-Agent": "PorygonTheBot" },
