@@ -20,14 +20,27 @@ export default {
         const links = replayLink.match(urlRegex);
 
         if (!(replayLink.includes("replay") && links)) {
-            return await interaction.reply(`:x: ${replayLink} is not a replay.`);
+            return await interaction.reply(
+                `:x: ${replayLink} is not a replay.`
+            );
         }
-        interaction.deferReply();
+        await interaction.deferReply();
 
         let link = replayLink + ".log";
-        let response = await axios.get(link, {
-            headers: { "User-Agent": "PorygonTheBot" },
-        });
+        let response = await axios
+            .get(link, {
+                headers: { "User-Agent": "PorygonTheBot" },
+            })
+            .catch(async (e) => {
+                await interaction.editReply(
+                    ":x: Something went wrong. Please check your reply link."
+                );
+                return;
+            });
+        if (!response)
+            return await interaction.editReply(
+                ":x: Something went wrong. Please check your reply link."
+            );
         let data = response.data;
 
         //Getting the rules
