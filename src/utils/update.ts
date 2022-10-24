@@ -1,5 +1,4 @@
-import { google } from "googleapis";
-import { League } from "@prisma/client";
+
 import { Message, CommandInteraction, ChannelType } from "discord.js";
 import { Stats } from "../types/index.js";
 import Prisma from "./prisma.js";
@@ -553,7 +552,7 @@ const slashAnalyzeUpdate = async (
     //     discordUpdate(matchJson, message, league);
     // }
 
-    await interaction.reply(finalMessage);
+    await interaction.editReply(finalMessage);
 };
 const update = async (matchJson: Stats, message: Message) => {
     const league = await Prisma.getLeague(message.channel.id);
