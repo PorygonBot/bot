@@ -27,6 +27,14 @@ export default {
             });
         }
 
+        if (newName.length >= 1000) {
+            return interaction.reply({
+                content:
+                    ":x: The name provided is too long. Please use a shorter name.",
+                ephemeral: true,
+            });
+        }
+
         //Getting league info
         const league = await Prisma.getLeague(channel.id);
         //Updating the league's record with the new name
