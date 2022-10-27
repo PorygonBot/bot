@@ -49,6 +49,10 @@ export default {
         let replayer = new ReplayTracker(replayLink, rules);
         const matchJson = await replayer.track(data);
 
+        if (matchJson.error) {
+            return await interaction.editReply(matchJson.error);
+        }
+
         await slashAnalyzeUpdate(matchJson, interaction);
         console.log(`${link} has been analyzed!`);
     },

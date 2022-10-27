@@ -23,7 +23,7 @@ class ReplayTracker {
             let realdata = data.split("\n");
 
             for (const line of realdata) {
-                //console.log(line);
+                console.log(line);
                 dataArr.push(line);
 
                 //Separates the line into parts, separated by `|`
@@ -332,6 +332,9 @@ class ReplayTracker {
                     line.startsWith(`|switch|`) ||
                     line.startsWith(`|drag|`)
                 ) {
+                    if (battle.turns == 0 && Object.keys(battle.p1Pokemon).length == 0 && Object.keys(battle.p2Pokemon).length == 0)
+                        return { error: ":x: You probably gave me a randoms battle. I can't analyze those." } as Stats;
+
                     let replacerRealName = parts[2].split(",")[0];
                     let replacer = replacerRealName.split("-")[0];
                     const side = parts[1].split(": ")[0] as
