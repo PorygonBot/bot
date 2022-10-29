@@ -27,7 +27,7 @@ export default {
             });
         }
 
-        if (newName.length >= 1000) {
+        if (newName.length >= 256) {
             return interaction.reply({
                 content:
                     ":x: The name provided is too long. Please use a shorter name.",

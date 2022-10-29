@@ -165,7 +165,7 @@ export default {
                         {
                             label: "Spaced",
                             description: "Stats separated by spaces.",
-                            value: "Space",
+                            value: "SPACE",
                             default: rules[ruleName] === "SPACE",
                         },
                         {

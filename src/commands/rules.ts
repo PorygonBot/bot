@@ -22,6 +22,14 @@ export default {
         let league = await Prisma.getLeague(channel.id);
         let leagueName = league?.name;
 
+        if (leagueName.length >= 256) {
+            return interaction.reply({
+                content:
+                    ":x: Your league name is too long. Please change it to a shorter name.",
+                ephemeral: true,
+            });
+        }
+
         let rulesEmbed = new EmbedBuilder()
             .setTitle(`${leagueName}'s Rules`)
             .setDescription(
