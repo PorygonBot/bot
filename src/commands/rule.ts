@@ -8,6 +8,7 @@ import {
     Role,
     GuildBasedChannel,
     SelectMenuInteraction,
+    InteractionType,
 } from "discord.js";
 import { consts, Prisma } from "../utils/index.js";
 import { Rule, Rules } from "../types/index.js";
@@ -106,7 +107,14 @@ export default {
             const rolesWithPing = interaction.guild.roles.cache.filter(
                 (role: Role) => role.name.toLowerCase().includes("ping")
             );
-            console.log(rules[ruleName]);
+
+            if (rolesWithPing.size == 0) {
+                return await interaction.reply({
+                    content:
+                        ":x: There are no roles in your server with `ping`in its name.",
+                    ephemeral: true,
+                });
+            }
             //Adds each role as a select option
             rolesWithPing.forEach((role: Role) =>
                 pingSelect.addOptions([
@@ -131,6 +139,14 @@ export default {
                         channel.name.toLowerCase().includes("results")) &&
                     channel.isTextBased()
             );
+
+            if (channelsWithName.size == 0) {
+                return await interaction.reply({
+                    content:
+                        ":x: There are no channels in your server with `replays` or `results` in its name.",
+                    ephemeral: true,
+                });
+            }
             //Adds each channel as a select option
             channelsWithName.forEach((channel: GuildBasedChannel) =>
                 channelSelect.addOptions([
