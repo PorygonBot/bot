@@ -5,6 +5,7 @@ import deleteCommand from "./delete.js";
 // import endTrackCommand from "./end-track.js";
 import faqCommand from "./faq.js";
 import helpCommand from "./help.js";
+import joinCommand from "./join.js";
 import modeCommand from "./mode.js";
 import renameCommand from "./rename.js";
 import ruleCommand from "./rule.js";
@@ -18,6 +19,7 @@ const commandsArr: Command[] = [
     // endTrackCommand,
     faqCommand,
     helpCommand,
+    joinCommand,
     modeCommand,
     renameCommand,
     ruleCommand,

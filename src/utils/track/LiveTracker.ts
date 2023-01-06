@@ -1,7 +1,7 @@
 import axios from "axios";
 import querystring from "querystring";
 import WebSocket from "ws";
-import { Message } from "discord.js";
+import { User, TextChannel } from "discord.js";
 import { Rules, Battle, Stats, Pokemon } from "../../types/index.js";
 import { sockets, funcs, consts, update } from "../index.js";
 
@@ -10,20 +10,23 @@ class LiveTracker {
     rules: Rules;
     serverType: string;
     websocket: WebSocket;
-    message: Message;
+    channel: TextChannel;
+    author: User;
 
     constructor(
         battlelink: string,
         serverType: string,
         rules: Rules,
-        message: Message
+        channel: TextChannel,
+        author: User
     ) {
         this.battlelink = battlelink;
         this.rules = rules;
         this.serverType = serverType.toLowerCase().replace(" ", "");
-        this.message = message;
+        this.channel = channel;
+        this.author = author;
         this.websocket = new WebSocket(
-            sockets[this.serverType.toLowerCase()].server
+            sockets[this.serverType].server
         );
     }
 
@@ -37,7 +40,7 @@ class LiveTracker {
 
             try {
                 for (let line of realdata) {
-                    //console.log(line);
+                    console.log(line);
                     dataArr.push(line);
 
                     //Separates the line into parts, separated by `|`
@@ -96,7 +99,7 @@ class LiveTracker {
                                 }`
                             );
                             if (!this.rules.notalk)
-                                await this.message.channel.send(
+                                await this.channel.send(
                                     `Battle joined! Keeping track of stats now. ${this.rules.ping}`
                                 );
                         } else {
@@ -439,11 +442,11 @@ class LiveTracker {
 
                             //Updating the stats
                             Battle.decrementBattles(this.battlelink);
-                            await update(returnData as Stats, this.message);
+                            await update(returnData as Stats, this.channel, this.author);
 
                             //Done!
                             if (!this.rules.notalk)
-                                this.message.channel.send(
+                                this.channel.send(
                                     `Battle between \`${player1}\` and \`${player2}\` is complete and info has been updated!`
                                 );
                             this.websocket.send(`|/leave ${this.battlelink}`);
@@ -718,10 +721,10 @@ class LiveTracker {
 
                             //Updating the stats
                             Battle.decrementBattles(this.battlelink);
-                            await update(returnData as Stats, this.message);
+                            await update(returnData as Stats, this.channel, this.author);
 
                             //Done!
-                            this.message.channel.send(
+                            this.channel.send(
                                 `Battle between \`${player1}\` and \`${player2}\` is complete and info has been updated!`
                             );
                             this.websocket.send(`|/leave ${this.battlelink}`);

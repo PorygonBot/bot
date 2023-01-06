@@ -5,9 +5,9 @@ import {
     Message,
     GuildMember,
     PermissionResolvable,
-    CommandInteractionOptionResolver,
+    TextChannel
 } from "discord.js";
-import { ActivityType } from "discord-api-types/v10";
+import { ActivityType, ChannelType } from "discord-api-types/v10";
 import {
     client,
     Prisma,
@@ -119,8 +119,9 @@ const messageFunction = async (message: Message) => {
     }
     //If it's sent in a validly-named live links channel, join the battle
     else if (
-        channel.name.includes("live-links") ||
-        channel.name.includes("live-battles")
+        (channel.name.includes("live-links") ||
+            channel.name.includes("live-battles"))
+        && channel.type == ChannelType.GuildText
     ) {
         try {
             //Extracting battlelink from the message
@@ -183,7 +184,8 @@ const messageFunction = async (message: Message) => {
                     battleId,
                     server.name,
                     rules,
-                    message
+                    channel,
+                    message.author
                 );
                 await tracker.track();
                 console.log("tracking");

@@ -1,4 +1,4 @@
-import { Message, CommandInteraction } from "discord.js";
+import { Message, CommandInteraction, TextChannel, User } from "discord.js";
 import { Stats } from "../types/index.js";
 import { League } from "@prisma/client";
 import Prisma from "./prisma.js";
@@ -214,8 +214,9 @@ const genAppend = (matchJson: { [key: string]: any }, league: League) => {
 //Updaters
 const discordUpdate = async (
     matchJson: Stats,
-    message: Message,
-    league: League | null
+    channel: TextChannel,
+    league: League | null,
+    author: User
 ) => {
     let info = matchJson.info;
     let system = league?.system || "D";
@@ -253,17 +254,16 @@ const discordUpdate = async (
         }`;
     }
 
-    if (system === "DM") await message.author.send(finalMessage);
-    else if (system === "C" && channelId && message.guild) {
-        const channel = funcs.getChannel(message.guild, channelId);
-        if (channel.isTextBased())
-            //Checking if it's a text channel instead of a voice channel
-            await channel?.send(finalMessage);
+    if (system === "DM") await author.send(finalMessage);
+    else if (system === "C" && channelId && channel.guild) {
+        let streamChannel = funcs.getChannel(channel.guild, channelId);
+        if (streamChannel.isTextBased())
+            return await streamChannel.send(finalMessage);  
     } else {
         //If notalk is enabled, it just DM's the author
-        if (!info.rules.notalk) await message.channel.send(finalMessage);
+        if (!info.rules.notalk) return await channel.send(finalMessage);
         else
-            await message.author.send(
+            return await author.send(
                 '***_Porygon doesn\'t have "Send Messages" permissions in the live links channel. Please give it those permissions and set the "notalk" rule to "true" in the channel._***\n\n' +
                     finalMessage
             );
@@ -271,8 +271,9 @@ const discordUpdate = async (
 };
 const sheetsUpdate = async (
     matchJson: Stats,
-    message: Message,
-    league: League
+    channel: TextChannel,
+    league: League,
+    author: User
 ) => {
     //Sheets authentication
     const creds = process.env.GOOGLE_SERVICE_ACCOUNT;
@@ -297,7 +298,7 @@ const sheetsUpdate = async (
     let res = await sheets.spreadsheets.values
         .append(final as any)
         .catch((e: Error) => {
-            message.channel.send(
+            return channel.send(
                 ":x: I do not have permission to edit the file you provided. If you want me to automatically update your sheet, please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`."
             );
             console.error(e);
@@ -313,127 +314,24 @@ const sheetsUpdate = async (
             2,
             info.rules.redirect.length - 1
         );
-        await discordUpdate(matchJson, message, league);
+        await discordUpdate(matchJson, channel, league, author);
     } else {
-        message.channel.send(
+        return channel.send(
             `Battle between \`${psPlayer1}\` and \`${psPlayer2}\` is complete and info has been updated!\n**Replay:** ${matchJson.info.replay}\n**History:** ${matchJson.info.history}`
         );
     }
 };
-const dlUpdate = async (matchJson: Stats, message: Message, league: League) => {
-    let psPlayer1 = matchJson.playerNames[0];
-    let psPlayer2 = matchJson.playerNames[1];
-    let info = matchJson.info;
 
-    try {
-        //Getting league data
-        const leagueResponse = await axios.get(
-            `${process.env.DL_API_URL}/league/${league.dlId}?key=${process.env.DL_API_KEY}`,
-            {
-                headers: { "User-Agent": "PorygonTheBot" },
-            }
-        );
-        const leagueData = leagueResponse.data;
-
-        //Getting the Discord user player from their Discord ID
-        const authorID = message.author.id;
-        const playerResponse = await axios.get(
-            `${process.env.DL_API_URL}/league/${league.dlId}/player/<@${authorID}>?key=${process.env.DL_API_KEY}`,
-            {
-                headers: { "User-Agent": "PorygonTheBot" },
-            }
-        );
-        const discordPlayerData = playerResponse.data;
-        //Check which player the Discord user is.
-        const discordUserPS = Object.keys(
-            matchJson.players[psPlayer1].kills
-        ).some((item) => discordPlayerData.pokemon.includes(item))
-            ? psPlayer1
-            : psPlayer2;
-        const nonDiscordUserPS =
-            discordUserPS === Object.keys(matchJson.players)[0]
-                ? Object.keys(matchJson.players)[1]
-                : Object.keys(matchJson.players)[0];
-
-        //Getting the Match ID based on opponent's pokemon
-        const matchURL = `${process.env.DL_API_URL}/league/${
-            league.dlId
-        }/player/<@${authorID}>?pokemon=${Object.keys(
-            matchJson.players[nonDiscordUserPS].kills
-        )
-            .join(",")
-            .replace("’", "")}&key=${process.env.DL_API_KEY}`;
-        const matchResponse = await axios.get(matchURL, {
-            headers: { "User-Agent": "PorygonTheBot" },
-        });
-        const matchData = matchResponse.data;
-
-        matchJson.players[discordUserPS].league_id = discordPlayerData.id;
-        matchJson.players[nonDiscordUserPS].league_id = matchData.opponent;
-
-        const final = {
-            ...matchJson,
-            ...matchData,
-            discord_user: discordUserPS,
-            headers: { "User-Agent": "PorygonTheBot" },
-            league_id: league.dlId,
-        };
-
-        //Making the submission
-        const submissionResponse = await axios.post(
-            `${process.env.DL_API_URL}/submission?key=${process.env.DL_API_KEY}`,
-            final
-        );
-
-        //Posting to the replay webhook
-        let result = matchJson.info.result
-            .toLowerCase()
-            .includes(discordUserPS.toLowerCase())
-            ? matchJson.info.result.substring(matchJson.info.result.length - 3)
-            : `${matchJson.info.result.substring(
-                  matchJson.info.result.length - 1
-              )}-${matchJson.info.result.substring(
-                  matchJson.info.result.length - 3,
-                  matchJson.info.result.length - 2
-              )}`;
-        await axios.post(leagueData.replay_webhook, {
-            content: `A match in the ${leagueData.league_name} between the ${discordPlayerData.team_name} and the ${matchData.opponent_team_name} has just been submitted by Porygon Automatic Import.\nReplay: <${matchJson.info.replay}>\nResult: ||${result}||`,
-        });
-        if (info.rules.redirect) {
-            league.resultsChannelId = info.rules.redirect.substring(
-                2,
-                info.rules.redirect.length - 1
-            );
-            league.system = "C";
-            league.resultsChannelId = info.rules.redirect.substring(
-                2,
-                info.rules.redirect.length - 1
-            );
-            discordUpdate(matchJson, message, league);
-        } else {
-            await message.channel.send(
-                `Battle between \`${psPlayer1}\` and \`${psPlayer2}\` is complete and info has been updated!`
-            );
-        }
-    } catch (e: any) {
-        console.error(e);
-        await message.reply(
-            `There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\`\n Use these stats instead.`
-        );
-        //Send the stats
-        league.system = "D";
-        discordUpdate(matchJson, message, league);
-    }
-};
 const roleUpdate = async (
     matchJson: Stats,
-    message: Message,
-    league: League
+    channel: TextChannel,
+    league: League,
+    author: User
 ) => {
     let info = matchJson.info;
 
     try {
-        message.member?.roles.cache.forEach((role) => {
+        channel.guild.roles.cache.forEach((role) => {
             if (
                 league.rolesChannels &&
                 Object.keys(
@@ -480,23 +378,19 @@ const roleUpdate = async (
                     }>\n**History: **${info.history}`;
                 }
 
-                if (channelId && message.guild) {
-                    const channel = funcs.getChannel(message.guild, channelId);
-                    if (channel?.isTextBased())
-                        //Checking if it's a text channel instead of a voice channel
-                        channel.send(finalMessage);
-                    return;
+                if (channelId && channel.guild) {
+                    return channel.send(finalMessage);
                 }
             }
         });
     } catch (e: any) {
         console.error(e);
-        await message.reply(
-            `There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\`\n Use these stats instead.`
+        await channel.send(
+            `There was an error trying to update \`${matchJson.info.battleId}\`!\n\n\`\`\`${e.stack}\`\`\`\n Use these stats instead.`
         );
         //Send the stats
         league.system = "D";
-        discordUpdate(matchJson, message, league);
+        discordUpdate(matchJson, channel, league, author);
     }
 };
 const slashAnalyzeUpdate = async (
@@ -552,29 +446,28 @@ const slashAnalyzeUpdate = async (
     //     discordUpdate(matchJson, message, league);
     // }
 
-    if (interaction.deferred)
-        return await interaction.editReply(finalMessage);
+    if (interaction.deferred) return await interaction.editReply(finalMessage);
 
     return await interaction.reply(finalMessage);
 };
-const update = async (matchJson: Stats, message: Message) => {
-    const league = await Prisma.getLeague(message.channel.id);
+const update = async (matchJson: Stats, channel: TextChannel, author: User) => {
+    const league = await Prisma.getLeague(channel.id);
     let system = league?.system;
 
-    if (matchJson.error) return await message.reply(matchJson.error);
+    console.log(league);
+
+    if (matchJson.error) return await channel.send(matchJson.error);
 
     try {
         if (league) {
-            if (system === "S") await sheetsUpdate(matchJson, message, league);
-            else if (system === "DL")
-                await dlUpdate(matchJson, message, league);
+            if (system === "S") await sheetsUpdate(matchJson, channel, league, author);
             else if (system === "R")
-                await roleUpdate(matchJson, message, league);
-            else await discordUpdate(matchJson, message, league);
-        } else await discordUpdate(matchJson, message, league);
+                await roleUpdate(matchJson, channel, league, author);
+            else await discordUpdate(matchJson, channel, league, author);
+        } else await discordUpdate(matchJson, channel, league, author);
     } catch (e: any) {
         console.error(e);
-        return await message.reply(
+        return await channel.send(
             `There was an error trying to update this match!\n\n\`\`\`${e.stack}\`\`\``
         );
     }
