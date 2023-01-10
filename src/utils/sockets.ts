@@ -61,6 +61,12 @@ const sockets: { [key: string]: Socket } = {
         ip: "sim3.psim.us:8000",
         server: "ws://sim3.psim.us:8000/showdown/websocket",
     },
+    dl: {
+        name: "DL",
+        link: "https://dl.psim.us/",
+        ip: "dlsim.radicalred.net:8000",
+        server: "ws://dlsim.radicalred.net:8000/showdown/websocket",
+    },
 };
 
 export default sockets;
