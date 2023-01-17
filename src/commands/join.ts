@@ -69,7 +69,7 @@ export default {
 
                 if (!rules.notalk)
                     await interaction
-                        .reply("Joining the battle...")
+                        .reply(`Watch the battle here:\n${battlelink}\n\nJoining the battle...`)
                         .catch((e: Error) => console.error(e));
 
                 Battle.incrementBattles(battleId);

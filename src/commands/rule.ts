@@ -8,11 +8,9 @@ import {
     Role,
     GuildBasedChannel,
     SelectMenuInteraction,
-    InteractionType,
 } from "discord.js";
 import { consts, Prisma } from "../utils/index.js";
 import { Rule, Rules } from "../types/index.js";
-import { RegularExpressionLiteral } from "typescript";
 import { StatsFormat } from "@prisma/client";
 
 export default {
