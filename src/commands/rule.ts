@@ -283,6 +283,7 @@ export default {
 
         return await interaction.reply({
             content: "Your rule has been set!",
+            ephemeral: true,
         });
     },
 };
