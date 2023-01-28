@@ -80,6 +80,8 @@ const messageFunction = async (message: Message) => {
     const msgStr = message.content;
     const prefix = "porygon, use ";
 
+    if (message.author.bot) return;
+
     const hasSendMessages = !(
         channel.isDMBased() ||
         channel
