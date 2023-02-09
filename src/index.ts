@@ -1,12 +1,7 @@
 // Importing required modules
 import * as dotenv from "dotenv";
 import axios from "axios";
-import {
-    Message,
-    GuildMember,
-    PermissionResolvable,
-    TextChannel
-} from "discord.js";
+import { Message, GuildMember, PermissionResolvable } from "discord.js";
 import { ActivityType, ChannelType } from "discord-api-types/v10";
 import {
     client,
@@ -15,8 +10,8 @@ import {
     LiveTracker,
     sockets,
     commands,
-} from "./utils/index.js";
-import { Battle, Command } from "./types/index.js";
+} from "./utils";
+import { Battle, Command } from "./types";
 // Setting things up
 dotenv.config();
 
@@ -122,8 +117,8 @@ const messageFunction = async (message: Message) => {
     //If it's sent in a validly-named live links channel, join the battle
     else if (
         (channel.name.includes("live-links") ||
-            channel.name.includes("live-battles"))
-        && channel.type == ChannelType.GuildText
+            channel.name.includes("live-battles")) &&
+        channel.type == ChannelType.GuildText
     ) {
         try {
             //Extracting battlelink from the message
