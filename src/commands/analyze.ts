@@ -19,9 +19,19 @@ export default {
         const urlRegex = /(https?:\/\/[^ ]*)/;
         const links = replayLink.match(urlRegex);
 
+        // Discord interaction message limit is 2000, so if it errors, it has to error properly
+        if (replayLink.length >= 1950) {
+            return await interaction.reply({
+                content: `:x: Your replay length is too long.`,
+                ephemeral: true
+            })
+        }
+
         if (!(replayLink.includes("replay") && links)) {
-            return await interaction.reply(
-                `:x: ${replayLink} is not a replay.`
+            return await interaction.reply({
+                content: `:x: ${replayLink} is not a replay.`,
+                ephemeral: true
+            }
             );
         }
         await interaction.deferReply();
