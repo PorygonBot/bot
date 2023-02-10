@@ -10,8 +10,8 @@ import {
     LiveTracker,
     sockets,
     commands,
-} from "./utils";
-import { Battle, Command } from "./types";
+} from "./utils/index.js";
+import { Battle, Command } from "./types/index.js";
 // Setting things up
 dotenv.config();
 
