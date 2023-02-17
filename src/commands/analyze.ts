@@ -1,9 +1,10 @@
 import {
     CommandInteractionOptionResolver,
     CommandInteraction,
+    TextChannel,
 } from "discord.js";
 import axios from "axios";
-import { Prisma, ReplayTracker, slashAnalyzeUpdate } from "../utils/index.js";
+import { Prisma, ReplayTracker, update } from "../utils/index.js";
 import { Command } from "../types/index.js";
 
 export default {
@@ -47,7 +48,7 @@ export default {
                 );
                 return;
             });
-        if (!response)
+        if (!(response && interaction.channel))
             return await interaction.editReply(
                 ":x: Something went wrong. Please check your reply link."
             );
@@ -63,7 +64,7 @@ export default {
             return await interaction.editReply(matchJson.error);
         }
 
-        await slashAnalyzeUpdate(matchJson, interaction);
+        await update(matchJson, interaction.channel as TextChannel, interaction.user);
         console.log(`${link} has been analyzed!`);
     },
 } as Command;

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Rules, Battle, Stats, Pokemon } from "../../types/index.js";
-import consts from "../consts.js";
+import { consts } from "../index.js";
 
 class ReplayTracker {
     link: string;
@@ -332,8 +332,14 @@ class ReplayTracker {
                     line.startsWith(`|switch|`) ||
                     line.startsWith(`|drag|`)
                 ) {
-                    if (battle.turns == 0 && Object.keys(battle.p1Pokemon).length == 0 && Object.keys(battle.p2Pokemon).length == 0)
-                        return { error: ":x: You probably gave me a randoms battle. I can't analyze those." } as Stats;
+                    if (
+                        battle.turns == 0 &&
+                        Object.keys(battle.p1Pokemon).length == 0 &&
+                        Object.keys(battle.p2Pokemon).length == 0
+                    )
+                        return {
+                            error: ":x: You probably gave me a randoms battle. I can't analyze those.",
+                        } as Stats;
 
                     let replacerRealName = parts[2].split(",")[0];
                     let replacer = replacerRealName.split("-")[0];
