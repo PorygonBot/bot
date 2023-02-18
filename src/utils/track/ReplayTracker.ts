@@ -925,10 +925,12 @@ class ReplayTracker {
                         let killer = "";
                         let afflictor = battle[side].otherAffliction["perish3"];
                         let victim = battle[side].realName || battle[side].name;
-                        let currentPlayer = side.substring(0, 2) as "p1" | "p2";
+                        let afflictorPlayer = (
+                            side.substring(0, 2) == "p1" ? "p2" : "p1"
+                        ) as "p1" | "p2";
 
                         if (
-                            battle[`${currentPlayer}Pokemon` as const][
+                            battle[`${afflictorPlayer}Pokemon` as const][
                                 afflictor
                             ] &&
                             afflictor !== victim
@@ -938,15 +940,17 @@ class ReplayTracker {
                                 afflictor,
                                 true
                             );
-                            battle[`${currentPlayer}Pokemon` as const][
+                            battle[`${afflictorPlayer}Pokemon` as const][
                                 afflictor
                             ].killed(deathJson);
+
+                            killer = afflictor;
                         } else {
                             if (this.rules.suicide !== "N") {
                                 killer =
-                                    battle[`${currentPlayer}a` as const]
+                                    battle[`${afflictorPlayer}a` as const]
                                         .realName ||
-                                    battle[`${currentPlayer}a` as const].name;
+                                    battle[`${afflictorPlayer}a` as const].name;
                             }
 
                             let deathJson = battle[side].died(
@@ -955,7 +959,7 @@ class ReplayTracker {
                                 this.rules.suicide === "P"
                             );
                             if (killer) {
-                                battle[`${currentPlayer}Pokemon` as const][
+                                battle[`${afflictorPlayer}Pokemon` as const][
                                     killer
                                 ].killed(deathJson);
                             }
