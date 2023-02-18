@@ -47,6 +47,7 @@ const confusionMoves = [
 const toxicMoves = [
     "Baneful Bunker",
     "Cross Poison",
+    "Dire Claw",
     "Fling",
     "Gunk Shot",
     "Poison Fang",

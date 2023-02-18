@@ -35,7 +35,7 @@ export default {
             }
             );
         }
-        await interaction.deferReply();
+        await interaction.reply("Analyzing...");
 
         let link = replayLink + ".log";
         let response = await axios
