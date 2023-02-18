@@ -25,9 +25,7 @@ class LiveTracker {
         this.serverType = serverType.toLowerCase().replace(" ", "");
         this.channel = channel;
         this.author = author;
-        this.websocket = new WebSocket(
-            sockets[this.serverType].server
-        );
+        this.websocket = new WebSocket(sockets[this.serverType].server);
     }
 
     async track() {
@@ -442,7 +440,11 @@ class LiveTracker {
 
                             //Updating the stats
                             Battle.decrementBattles(this.battlelink);
-                            await update(returnData as Stats, this.channel, this.author);
+                            await update(
+                                returnData as Stats,
+                                this.channel,
+                                this.author
+                            );
 
                             //Done!
                             if (!this.rules.notalk)
@@ -721,7 +723,11 @@ class LiveTracker {
 
                             //Updating the stats
                             Battle.decrementBattles(this.battlelink);
-                            await update(returnData as Stats, this.channel, this.author);
+                            await update(
+                                returnData as Stats,
+                                this.channel,
+                                this.author
+                            );
 
                             //Done!
                             this.channel.send(
@@ -1355,12 +1361,12 @@ class LiveTracker {
                                 battle[side].otherAffliction["perish3"];
                             let victim =
                                 battle[side].realName || battle[side].name;
-                            let currentPlayer = side.substring(0, 2) as
-                                | "p1"
-                                | "p2";
+                            let afflictorPlayer = (
+                                side.substring(0, 2) == "p1" ? "p2" : "p1"
+                            ) as "p1" | "p2";
 
                             if (
-                                battle[`${currentPlayer}Pokemon` as const][
+                                battle[`${afflictorPlayer}Pokemon` as const][
                                     afflictor
                                 ] &&
                                 afflictor !== victim
@@ -1370,15 +1376,17 @@ class LiveTracker {
                                     afflictor,
                                     true
                                 );
-                                battle[`${currentPlayer}Pokemon` as const][
+                                battle[`${afflictorPlayer}Pokemon` as const][
                                     afflictor
                                 ].killed(deathJson);
+
+                                killer = afflictor;
                             } else {
                                 if (this.rules.suicide !== "N") {
                                     killer =
-                                        battle[`${currentPlayer}a` as const]
+                                        battle[`${afflictorPlayer}a` as const]
                                             .realName ||
-                                        battle[`${currentPlayer}a` as const]
+                                        battle[`${afflictorPlayer}a` as const]
                                             .name;
                                 }
 
@@ -1388,9 +1396,9 @@ class LiveTracker {
                                     this.rules.suicide === "P"
                                 );
                                 if (killer) {
-                                    battle[`${currentPlayer}Pokemon` as const][
-                                        killer
-                                    ].killed(deathJson);
+                                    battle[
+                                        `${afflictorPlayer}Pokemon` as const
+                                    ][killer].killed(deathJson);
                                 }
                             }
 
