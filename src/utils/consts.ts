@@ -104,6 +104,7 @@ const paraMoves = [
     "Bolt Strike",
     "Bounce",
     "Buzzy Buzz",
+    "Dire Claw",
     "Discharge",
     "Dragon Breath",
     "Fling",
