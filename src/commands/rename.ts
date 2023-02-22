@@ -1,3 +1,4 @@
+import { League } from "@prisma/client";
 import {
     CommandInteraction,
     CommandInteractionOptionResolver,
@@ -42,8 +43,8 @@ export default {
             await Prisma.upsertLeague({
                 channelId: league.channelId,
                 system: league.system,
-                leagueName: newName,
-            });
+                name: newName,
+            } as League);
 
             return await interaction.reply({
                 content: `Changed this league's name from \`${league.name}\` to \`${newName}\`!`,

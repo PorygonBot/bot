@@ -1,5 +1,6 @@
 import axios from "axios";
-import { Rules, Battle, Stats, Pokemon } from "../../types/index.js";
+import { Rules } from "@prisma/client";
+import { Battle, Stats, Pokemon } from "../../types/index.js";
 import { consts } from "../index.js";
 
 class ReplayTracker {

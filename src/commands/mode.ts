@@ -5,24 +5,14 @@ import {
     TextBasedChannel,
     GuildMember,
 } from "discord.js";
-import { System } from "@prisma/client";
-
+import { System, League } from "@prisma/client";
 import { Prisma } from "../utils/index.js";
 
 const updateDb = async (
     interaction: CommandInteraction,
     channel: TextBasedChannel,
     mode: System,
-    updateObj: {
-        channelId: string;
-        system: string;
-        leagueName?: string;
-        guildId?: string;
-        resultsChannelId?: string;
-        dlId?: string;
-        sheetId?: string;
-        rolesChannels?: {};
-    }
+    updateObj: League
 ) => {
     let league = await Prisma.getLeague(channel.id);
     const modes = {
@@ -56,7 +46,7 @@ const updateDb = async (
     } else {
         // Gives league a default name
         let leagueName = channel.id;
-        updateObj.leagueName = leagueName;
+        updateObj.name = leagueName;
         await Prisma.upsertLeague(updateObj);
 
         console.log(
@@ -89,6 +79,13 @@ export default {
         const channel = interaction.channel as TextBasedChannel;
         const author = interaction.member as GuildMember;
 
+        if (!interaction.guild) {
+            return interaction.reply({
+                content: ":x: This is an invalid server. Please try in another server.",
+                ephemeral: true
+            })
+        }
+
         if (author && !author.permissions.has("ManageRoles")) {
             return interaction.reply({
                 content:
@@ -97,7 +94,7 @@ export default {
             });
         }
 
-        let mode = options.getString("method") as System;
+        let mode: System = options.getString("method") as System;
         let streamChannel = options.getChannel("channel");
         let sheetsID = "";
         let dlID = "";
@@ -182,10 +179,11 @@ export default {
         }
 
         await updateDb(interaction, channel, mode, {
+            name: "",
             channelId: channel.id,
             system: mode,
-            guildId: interaction.guild?.id,
-            resultsChannelId: streamChannel?.id,
+            guildId: interaction.guild.id,
+            resultsChannelId: streamChannel?.id || "",
             dlId: dlID,
             sheetId: sheetsID,
             rolesChannels: rolesChannels,

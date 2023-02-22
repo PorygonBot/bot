@@ -1,4 +1,4 @@
-import Rules from "./Rules.js";
+import { Rules } from "@prisma/client";
 
 type Rule = keyof Rules;
 

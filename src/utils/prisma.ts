@@ -1,48 +1,39 @@
-import { PrismaClient } from "@prisma/client";
-import { Rules } from "../types";
+import { PrismaClient, League, Rules } from "@prisma/client";
 
 //Database!
 const prisma = new PrismaClient();
 
 class Prisma {
-    static async upsertLeague(obj: {
-        channelId: string;
-        system: string;
-        leagueName?: string;
-        guildId?: string;
-        resultsChannelId?: string;
-        dlId?: string;
-        sheetId?: string;
-        rolesChannels?: {};
-    }) {
+    static async upsertLeague(obj: League) {
         const league = await this.getLeague(obj.channelId);
+
         await prisma.league.upsert({
             where: {
                 channelId: obj.channelId,
             },
             update: {
-                system: obj.system as "D" | "DM" | "C" | "S" | "DL",
-                name: obj.leagueName ?? league?.name,
-                resultsChannelId: obj.resultsChannelId ?? "",
-                dlId: obj.dlId ?? "",
-                sheetId: obj.sheetId ?? "",
-                rolesChannels: obj.rolesChannels,
+                system: obj.system,
+                name: obj.name == "" ? league?.name : obj.name,
+                resultsChannelId: obj.resultsChannelId,
+                dlId: obj.dlId,
+                sheetId: obj.sheetId,
+                rolesChannels: obj.rolesChannels ?? [],
             },
             create: {
-                name: obj.leagueName ?? "",
-                guildId: obj.guildId ?? "",
+                name: obj.name,
+                guildId: obj.guildId,
                 channelId: obj.channelId,
-                system: obj.system as "D" | "DM" | "C" | "S" | "DL",
-                resultsChannelId: obj.resultsChannelId ?? "",
-                dlId: obj.dlId ?? "",
-                sheetId: obj.sheetId ?? "",
-                rolesChannels: obj.rolesChannels,
+                system: obj.system,
+                resultsChannelId: obj.resultsChannelId,
+                dlId: obj.dlId,
+                sheetId: obj.sheetId,
+                rolesChannels: obj.rolesChannels ?? [],
             },
         });
     }
 
-    static async leagueWhere(prop: string, value: string) {
-        let obj = {} as { [key: string]: string };
+    static async leagueWhere(prop: string, value: unknown) {
+        let obj = {} as { [key: typeof prop]: typeof value };
         obj[prop] = value;
         const leagues = await prisma.league.findMany({
             where: obj,
@@ -70,19 +61,21 @@ class Prisma {
                 },
             });
 
-            await prisma.rules.delete({
-                where: {
-                    channelId: channelId,
-                },
-            }).catch((e) => console.log(`${league?.name} doesn't have any rules to delete.`));
+            await prisma.rules
+                .delete({
+                    where: {
+                        channelId: channelId,
+                    },
+                })
+                .catch((e) =>
+                    console.log(
+                        `${league?.name} doesn't have any rules to delete.`
+                    )
+                );
         }
     }
 
-    static async upsertRules(
-        channelId: string,
-        name?: string,
-        rules?: { [key: string]: string | boolean }
-    ) {
+    static async upsertRules(channelId: string, name?: string, rules?: Rules) {
         await prisma.rules.upsert({
             where: {
                 channelId: channelId,
@@ -99,7 +92,7 @@ class Prisma {
     }
 
     static async getRules(channelId: string) {
-        let rules = {
+        let rules: Rules = {
             channelId: channelId,
             leagueName: "Default",
             recoil: "D",
@@ -116,7 +109,7 @@ class Prisma {
             tb: true,
             combine: false,
             redirect: "",
-        } as Rules;
+        };
 
         const numLeagues = await prisma.rules.count({
             where: {
@@ -135,7 +128,7 @@ class Prisma {
                     console.error(e);
                 });
 
-            if (prismaRules) rules = prismaRules as unknown as Rules;
+            if (prismaRules) rules = prismaRules;
         }
 
         return rules;

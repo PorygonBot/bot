@@ -4,7 +4,7 @@ import {
     CommandInteractionOptionResolver,
     TextBasedChannel,
 } from "discord.js";
-import { Rules } from "../types/index.js";
+import { Rules } from "@prisma/client";
 import { Prisma } from "../utils/index.js";
 
 export default {

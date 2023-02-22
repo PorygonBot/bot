@@ -9,9 +9,9 @@ import {
     GuildBasedChannel,
     SelectMenuInteraction,
 } from "discord.js";
+import { Rules, StatsFormat } from "@prisma/client";
 import { consts, Prisma } from "../utils/index.js";
-import { Rule, Rules } from "../types/index.js";
-import { StatsFormat } from "@prisma/client";
+import { Rule } from "../types/index.js";
 
 export default {
     name: "rule",
@@ -278,7 +278,7 @@ export default {
         await Prisma.upsertRules(
             interaction.channel.id,
             rules.leagueName,
-            rules as unknown as { [key: string]: string | boolean }
+            rules as Rules
         );
 
         return await interaction.reply({

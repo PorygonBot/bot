@@ -1,4 +1,4 @@
-import Rules from "./Rules";
+import { Rules } from "@prisma/client";
 
 interface Stats {
     players: {
@@ -7,9 +7,9 @@ interface Stats {
             kills: { [key: string]: { [key: string]: number } };
             deaths: { [key: string]: number };
             league_id?: string;
-        },
+        };
     };
-    playerNames: string[]
+    playerNames: string[];
     info: {
         replay: string;
         history: string;
