@@ -4,6 +4,11 @@ import {
     CommandInteractionOptionResolver,
     TextBasedChannel,
     GuildMember,
+    SelectMenuBuilder,
+    ActionRowBuilder,
+    GuildBasedChannel,
+    ModalBuilder,
+    Role,
 } from "discord.js";
 import { System, League } from "@prisma/client";
 import { Prisma } from "../utils/index.js";
@@ -67,6 +72,105 @@ const updateDb = async (
     }
 };
 
+const generateRolesModal = async (interaction: CommandInteraction) => {
+    // Checking if the server exists
+    if (!interaction.guild) {
+        await interaction.reply({
+            content:
+                ":x: This is an invalid server. Please try in another server.",
+            ephemeral: true,
+        });
+
+        return;
+    }
+
+    const rolesModal = new ModalBuilder()
+        .setCustomId("mode-roles-modal")
+        .setTitle("Roles Mode Chooser");
+
+    // Maximum number of rows in a modal is 5.
+    // 2 rows per role-channel set means 2 sets per modal.
+    // I will generate more modals if the user requests it in the modal response.
+    for (let i = 0; i < 2; i++) {
+        // Creates the select menu for the roles
+        let pingRow: ActionRowBuilder<SelectMenuBuilder> =
+            new ActionRowBuilder();
+        let pingSelect = new SelectMenuBuilder()
+            .setCustomId("mode-roles-pings")
+            .setPlaceholder("");
+        // Gets all roles in the server that can be player roles
+        const rolesWithPing = interaction.guild.roles.cache.filter(
+            (role: Role) =>
+                role.name.toLowerCase().includes("player") ||
+                role.name.toLowerCase().includes("coach") ||
+                role.name.toLowerCase().includes("participant")
+        );
+        // Checks if there are any such roles
+        if (rolesWithPing.size == 0) {
+            await interaction.reply({
+                content:
+                    ":x: There are no roles in your server with `player`, `coach`, or `participant` in its name.",
+                ephemeral: true,
+            });
+
+            return;
+        }
+        //Adds each role as a select option
+        rolesWithPing.forEach((role: Role) =>
+            pingSelect.addOptions([
+                {
+                    label: role.name,
+                    description: role.name,
+                    value: role.toString(),
+                },
+            ])
+        );
+        pingRow.addComponents(pingSelect);
+
+        // Creates the select menu for the channels
+        let channelRow: ActionRowBuilder<SelectMenuBuilder> =
+            new ActionRowBuilder();
+        let channelSelect = new SelectMenuBuilder()
+            .setCustomId("mode-roles-channels")
+            .setPlaceholder("");
+        // Gets all channels in the server that can be results channels
+        const channelsWithName = interaction.guild.channels.cache.filter(
+            (channel: GuildBasedChannel) =>
+                (channel.name.toLowerCase().includes("replays") ||
+                    channel.name.toLowerCase().includes("results")) &&
+                channel.isTextBased()
+        );
+        // Checks if there are any such channels
+        if (channelsWithName.size == 0) {
+            await interaction.reply({
+                content:
+                    ":x: There are no channels in your server with `replays` or `results` in its name.",
+                ephemeral: true,
+            });
+
+            return;
+        }
+        // Adds each channel as a select option
+        channelsWithName.forEach((channel: GuildBasedChannel) =>
+            channelSelect.addOptions([
+                {
+                    label: channel.name,
+                    description: channel.parent?.name,
+                    value: channel.id,
+                    default: false,
+                },
+            ])
+        );
+        channelRow.addComponents(channelSelect);
+
+        // TODO: When Discord implements select menus in modal components, uncomment below.
+        // rolesModal.addComponents(pingRow);
+        // rolesModal.addComponents(channelRow);
+    }
+
+    return rolesModal;
+};
+
 export default {
     name: "mode",
     description:
@@ -80,14 +184,15 @@ export default {
         const author = interaction.member as GuildMember;
 
         if (!interaction.guild) {
-            return interaction.reply({
-                content: ":x: This is an invalid server. Please try in another server.",
-                ephemeral: true
-            })
+            return await interaction.reply({
+                content:
+                    ":x: This is an invalid server. Please try in another server.",
+                ephemeral: true,
+            });
         }
 
         if (author && !author.permissions.has("ManageRoles")) {
-            return interaction.reply({
+            return await interaction.reply({
                 content:
                     ":x: You're not a moderator. Ask a moderator to set the mode of this league for you.",
                 ephemeral: true,
@@ -172,7 +277,19 @@ export default {
                 }
                 break;
             case "R":
-                //TODO find a way to implement roles
+                // Until discord implements select menus in modal components, THIS CODE WILL NOT WORK
+
+                const rolesModal = await generateRolesModal(interaction);
+
+                if (!rolesModal) {
+                    return await interaction.reply({
+                        content:
+                            ":x: Something went wrong while trying to build the select menus. Please try again.",
+                        ephemeral: true,
+                    });
+                }
+
+                await interaction.showModal(rolesModal);
                 break;
             default:
                 break;

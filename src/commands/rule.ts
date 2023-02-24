@@ -130,7 +130,7 @@ export default {
                 .setCustomId("rule-redirect")
                 .setPlaceholder(rules[ruleName] as string);
 
-            //Gets all channels in the server
+            //Gets all channels in the server that can be results channels
             const channelsWithName = interaction.guild.channels.cache.filter(
                 (channel: GuildBasedChannel) =>
                     (channel.name.toLowerCase().includes("replays") ||
