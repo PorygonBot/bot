@@ -1,9 +1,8 @@
-import { Message, CommandInteraction, TextChannel, User } from "discord.js";
+import { CommandInteraction, TextChannel, User } from "discord.js";
 import { Stats } from "../types/index.js";
 import { League } from "@prisma/client";
 import Prisma from "./prisma.js";
 import funcs from "./funcs.js";
-import axios from "axios";
 import { google } from "googleapis";
 //Message Generators
 const genMessage = (matchJson: { [key: string]: any }) => {

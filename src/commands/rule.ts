@@ -47,7 +47,7 @@ export default {
         let ruleName: Rule = options.getString("rule") as Rule;
 
         let row: ActionRowBuilder<SelectMenuBuilder> = new ActionRowBuilder();
-        if (consts.battleRules.includes(ruleName as unknown as string)) {
+        if (consts.battleRules.includes(ruleName)) {
             row.addComponents(
                 new SelectMenuBuilder()
                     .setCustomId(`rule-${ruleName}`)

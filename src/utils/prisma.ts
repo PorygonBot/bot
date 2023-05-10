@@ -32,8 +32,8 @@ class Prisma {
         });
     }
 
-    static async leagueWhere(prop: string, value: unknown) {
-        let obj = {} as { [key: typeof prop]: typeof value };
+    static async leagueWhere<T>(prop: string, value: T) {
+        let obj: { [key: string]: T } = {};
         obj[prop] = value;
         const leagues = await prisma.league.findMany({
             where: obj,
