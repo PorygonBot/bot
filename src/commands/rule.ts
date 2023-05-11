@@ -4,12 +4,13 @@ import {
     TextBasedChannel,
     GuildMember,
     ActionRowBuilder,
-    SelectMenuBuilder,
     Role,
     GuildBasedChannel,
-    SelectMenuInteraction,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    StringSelectMenuInteraction,
 } from "discord.js";
-import { Rules, StatsFormat } from "@prisma/client";
+import { KillType, Rules, StatsFormat } from "@prisma/client";
 import { consts, Prisma } from "../utils/index.js";
 import { Rule } from "../types/index.js";
 
@@ -46,60 +47,57 @@ export default {
         let rules: Rules = await Prisma.getRules(channel.id);
         let ruleName: Rule = options.getString("rule") as Rule;
 
-        let row: ActionRowBuilder<SelectMenuBuilder> = new ActionRowBuilder();
+        let row: ActionRowBuilder<StringSelectMenuBuilder> =
+            new ActionRowBuilder();
         if (consts.battleRules.includes(ruleName)) {
             row.addComponents(
-                new SelectMenuBuilder()
+                new StringSelectMenuBuilder()
                     .setCustomId(`rule-${ruleName}`)
-                    // .setPlaceholder(rules[ruleName] as string)
-                    .addOptions([
-                        {
-                            label: "Direct",
-                            description:
-                                "When this type of death occurs, it gives a direct kill.",
-                            value: "D",
-                            default: rules[ruleName] === "D",
-                        },
-                        {
-                            label: "Passive",
-                            description:
-                                "When this type of death occurs, it gives a passive kill.",
-                            value: "P",
-                            default: rules[ruleName] === "P",
-                        },
-                        {
-                            label: "None",
-                            description:
-                                "When this type of death occurs, it doesn't give a kill.",
-                            value: "N",
-                            default: rules[ruleName] === "N",
-                        },
-                    ])
+                    .addOptions(
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Direct")
+                            .setDescription(
+                                "When this type of death occurs, it gives a direct kill."
+                            )
+                            .setValue(KillType.D)
+                            .setDefault(rules[ruleName] === KillType.D),
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Passive")
+                            .setDescription(
+                                "When this type of death occurs, it gives a passive kill."
+                            )
+                            .setValue(KillType.P)
+                            .setDefault(rules[ruleName] === KillType.P),
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("None")
+                            .setDescription(
+                                "When this type of death occurs, it doesn't give a kill."
+                            )
+                            .setValue(KillType.N)
+                            .setDefault(rules[ruleName] === KillType.N)
+                    )
             );
         } else if (consts.boolRules.includes(ruleName)) {
             row.addComponents(
-                new SelectMenuBuilder()
+                new StringSelectMenuBuilder()
                     .setCustomId(`rule-${ruleName}`)
-                    // .setPlaceholder(rules[ruleName] as string)
-                    .addOptions([
-                        {
-                            label: "True",
-                            description: "True",
-                            value: "true",
-                            default: rules[ruleName] == true,
-                        },
-                        {
-                            label: "False",
-                            description: "False",
-                            value: "false",
-                            default: rules[ruleName] == false,
-                        },
-                    ])
+                    .addOptions(
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("True")
+                            .setDescription("True")
+                            .setValue("true")
+                            .setDefault(rules[ruleName] == true),
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("False")
+                            .setDescription("False")
+                            .setValue("false")
+                            .setDefault(rules[ruleName] == false)
+                    )
             );
         } else if (ruleName === "ping") {
-            let pingSelect = new SelectMenuBuilder()
-                .setCustomId("rule-ping")
-                .setPlaceholder(rules[ruleName] as string);
+            let pingSelect = new StringSelectMenuBuilder().setCustomId(
+                "rule-ping"
+            );
 
             //Gets all roles in the server
             const rolesWithPing = interaction.guild.roles.cache.filter(
@@ -115,20 +113,19 @@ export default {
             }
             //Adds each role as a select option
             rolesWithPing.forEach((role: Role) =>
-                pingSelect.addOptions([
-                    {
-                        label: role.name,
-                        description: role.name,
-                        value: role.toString(),
-                    },
-                ])
+                pingSelect.addOptions(
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel(role.name)
+                        .setDescription(role.name)
+                        .setValue(role.toString())
+                )
             );
 
             row.addComponents(pingSelect);
         } else if (ruleName === "redirect") {
-            let channelSelect = new SelectMenuBuilder()
-                .setCustomId("rule-redirect")
-                .setPlaceholder(rules[ruleName] as string);
+            let channelSelect = new StringSelectMenuBuilder().setCustomId(
+                "rule-redirect"
+            );
 
             //Gets all channels in the server that can be results channels
             const channelsWithName = interaction.guild.channels.cache.filter(
@@ -147,49 +144,44 @@ export default {
             }
             //Adds each channel as a select option
             channelsWithName.forEach((channel: GuildBasedChannel) =>
-                channelSelect.addOptions([
-                    {
-                        label: channel.name,
-                        description: channel.parent?.name,
-                        value: channel.id,
-                        default: rules[ruleName] === channel.id,
-                    },
-                ])
+                channelSelect.addOptions(
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel(channel.name)
+                        .setDescription(channel.parent?.name || "")
+                        .setValue(channel.id)
+                        .setDefault(rules[ruleName] === channel.id)
+                )
             );
 
             row.addComponents(channelSelect);
         } else if (ruleName === "format") {
             row.addComponents(
-                new SelectMenuBuilder()
+                new StringSelectMenuBuilder()
                     .setCustomId(`rule-${ruleName}`)
-                    // .setPlaceholder(rules[ruleName] as string)
-                    .addOptions([
-                        {
-                            label: "Default",
-                            description: "The default formatting for stats",
-                            value: "D",
-                            default: rules[ruleName] === "D",
-                        },
-                        {
-                            label: "CSV",
-                            description: "Stats separated by commas.",
-                            value: "CSV",
-                            default: rules[ruleName] === "CSV",
-                        },
-                        {
-                            label: "Spaced",
-                            description: "Stats separated by spaces.",
-                            value: "SPACE",
-                            default: rules[ruleName] === "SPACE",
-                        },
-                        {
-                            label: "Tour",
-                            description:
-                                "All stats stacked with CSV without any spacing or tidbits.",
-                            value: "TOUR",
-                            default: rules[ruleName] == "TOUR",
-                        },
-                    ])
+                    .addOptions(
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Default")
+                            .setDescription("The default formatting for stats.")
+                            .setValue(StatsFormat.D)
+                            .setDefault(rules[ruleName] === StatsFormat.D),
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("CSV")
+                            .setDescription("Stats separated by commas.")
+                            .setValue(StatsFormat.CSV)
+                            .setDefault(rules[ruleName] === StatsFormat.CSV),
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Spaced")
+                            .setDescription("Stats separated by spaces.")
+                            .setValue(StatsFormat.SPACE)
+                            .setDefault(rules[ruleName] === StatsFormat.SPACE),
+                        new StringSelectMenuOptionBuilder()
+                            .setLabel("Tour")
+                            .setDescription(
+                                "All stast stacked with CSV without any spacing or tidbits."
+                            )
+                            .setValue(StatsFormat.TOUR)
+                            .setDefault(rules[ruleName] === StatsFormat.TOUR)
+                    )
             );
         } else {
             return await interaction.reply({
@@ -203,7 +195,7 @@ export default {
             ephemeral: true,
         });
     },
-    async buttonResponse(interaction: SelectMenuInteraction) {
+    async buttonResponse(interaction: StringSelectMenuInteraction) {
         if (!interaction.channel)
             return await interaction.reply({
                 content: ":x: Command was not run in a channel.",
@@ -220,25 +212,26 @@ export default {
         let ruleKey: Rule = interaction.customId.split("-")[1] as Rule;
         let ruleValue = interaction.values[0];
         if (ruleValue === "D" || ruleValue === "P" || ruleValue === "N") {
-            // rules[ruleKey] = ruleValue;
+            let killRuleValue = ruleValue as KillType;
+            // rules[ruleKey] = killRuleValue;
             switch (ruleKey) {
                 case "recoil":
-                    rules.recoil = ruleValue;
+                    rules.recoil = killRuleValue;
                     break;
                 case "suicide":
-                    rules.suicide = ruleValue;
+                    rules.suicide = killRuleValue;
                     break;
                 case "selfteam":
-                    rules.selfteam = ruleValue;
+                    rules.selfteam = killRuleValue;
                     break;
                 case "abilityitem":
-                    rules.abilityitem = ruleValue;
+                    rules.abilityitem = killRuleValue;
                     break;
                 case "db":
-                    rules.db = ruleValue;
+                    rules.db = killRuleValue;
                     break;
                 case "forfeit":
-                    rules.forfeit = ruleValue;
+                    rules.forfeit = killRuleValue;
                     break;
             }
         } else if (ruleValue === "true" || ruleValue === "false") {
@@ -278,7 +271,7 @@ export default {
         await Prisma.upsertRules(
             interaction.channel.id,
             rules.leagueName,
-            rules as Rules
+            rules
         );
 
         return await interaction.reply({
