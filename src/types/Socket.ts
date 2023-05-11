@@ -1,5 +1,3 @@
-import WebSocket from 'ws';
-
 interface Socket {
 	name: string;
 	link: string;
