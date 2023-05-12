@@ -28,6 +28,7 @@ export default {
             })
         }
 
+        // Checks if given link is a valid replay
         if (!(replayLink.includes("replay") && links)) {
             return await interaction.reply({
                 content: `:x: ${replayLink} is not a replay.`,
@@ -37,6 +38,7 @@ export default {
         }
         await interaction.reply("Analyzing...");
 
+        // Gets the replay plog
         let link = replayLink + ".log";
         let response = await axios
             .get(link, {
@@ -57,13 +59,16 @@ export default {
         //Getting the rules
         let rules = await Prisma.getRules(interaction.channel?.id as string);
 
+        // Starts analyzing
         let replayer = new ReplayTracker(replayLink, rules);
         const matchJson = await replayer.track(data);
 
+        // Any error
         if (matchJson.error) {
             return await interaction.editReply(matchJson.error);
         }
 
+        // Updates
         await update(matchJson, interaction.channel as TextChannel, interaction.user);
         console.log(`${link} has been analyzed!`);
     },
