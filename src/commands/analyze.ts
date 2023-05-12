@@ -2,6 +2,8 @@ import {
     CommandInteractionOptionResolver,
     CommandInteraction,
     TextChannel,
+    GuildMember,
+    PermissionResolvable,
 } from "discord.js";
 import axios from "axios";
 import { Prisma, ReplayTracker, update } from "../utils/index.js";
@@ -24,19 +26,36 @@ export default {
         if (replayLink.length >= 1950) {
             return await interaction.reply({
                 content: `:x: Your replay length is too long.`,
-                ephemeral: true
-            })
+                ephemeral: true,
+            });
         }
 
         // Checks if given link is a valid replay
         if (!(replayLink.includes("replay") && links)) {
             return await interaction.reply({
                 content: `:x: ${replayLink} is not a replay.`,
-                ephemeral: true
-            }
-            );
+                ephemeral: true,
+            });
         }
         await interaction.reply("Analyzing...");
+
+        // Checks if bot has send messages perms
+        let channel = interaction.channel;
+        const hasSendMessages =
+            channel &&
+            !(
+                channel.isDMBased() ||
+                channel
+                    .permissionsFor(
+                        interaction.guild?.members.me as GuildMember
+                    )
+                    .has("SendMessages" as PermissionResolvable)
+            );
+        if (!hasSendMessages) {
+            return await interaction.reply(
+                ":x: I can't send messages in this channel."
+            );
+        }
 
         // Gets the replay plog
         let link = replayLink + ".log";
@@ -69,7 +88,11 @@ export default {
         }
 
         // Updates
-        await update(matchJson, interaction.channel as TextChannel, interaction.user);
+        await update(
+            matchJson,
+            interaction.channel as TextChannel,
+            interaction.user
+        );
         console.log(`${link} has been analyzed!`);
     },
 } as Command;
