@@ -37,8 +37,6 @@ export default {
                 ephemeral: true,
             });
         }
-        await interaction.reply("Analyzing...");
-
         // Checks if bot has send messages perms
         let channel = interaction.channel;
         const hasSendMessages =
@@ -56,6 +54,8 @@ export default {
                 ":x: I can't send messages in this channel."
             );
         }
+
+        await interaction.reply("Analyzing...");
 
         // Gets the replay plog
         let link = replayLink + ".log";
