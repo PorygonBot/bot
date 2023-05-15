@@ -57,7 +57,7 @@ client.on("interactionCreate", async (interaction) => {
         //Running the command
         await command.execute(interaction, options);
     } else if (
-        (interaction.isButton() || interaction.isSelectMenu()) &&
+        (interaction.isButton() || interaction.isStringSelectMenu()) &&
         interaction.message.interaction
     ) {
         const commandName = interaction.message.interaction.commandName;
