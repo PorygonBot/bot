@@ -41,14 +41,10 @@ export default {
         let channel = interaction.channel;
         const hasSendMessages =
             channel &&
-            !(
-                channel.isDMBased() ||
-                channel
-                    .permissionsFor(
-                        interaction.guild?.members.me as GuildMember
-                    )
-                    .has("SendMessages" as PermissionResolvable)
-            );
+            !channel.isDMBased() &&
+            channel
+                .permissionsFor(interaction.guild?.members.me as GuildMember)
+                .has("SendMessages" as PermissionResolvable);
         if (!hasSendMessages) {
             return await interaction.reply(
                 ":x: I can't send messages in this channel."
