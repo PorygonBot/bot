@@ -1,64 +1,61 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-enum KillType {
-	D
-	P
-	N
-}
-
-enum StatsFormat {
-	D
-	CSV
-	SPACE
-	TOUR
-}
-
-enum System {
-	D
-	C
-	DM
-	S
-	DL
-	R
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model League {
-	name              String
-  	guildId           String
-  	channelId         String      @id
-  	resultsChannelId  String?
-  	dlId              String?
-  	sheetId           String? 
-  	system            System      @default(D)
-	rolesChannels     Json?  
+  name             String
+  guildId          String
+  channelId        String  @id
+  resultsChannelId String?
+  dlId             String?
+  sheetId          String?
+  system           System  @default(D)
+  rolesChannels    Json?
 }
 
 model Rules {
-	channelId         String      @id
-	leagueName        String 
-	recoil            KillType    @default(D)
-	suicide           KillType    @default(D)
-	abilityitem       KillType    @default(P)
-	selfteam          KillType    @default(N)
-	db                KillType    @default(P)
-	spoiler           Boolean     @default(true)
-	ping              String      @default("")
-	forfeit           KillType    @default(N)
-	format            StatsFormat @default(D)
-	quirks            Boolean     @default(true)
-	notalk            Boolean     @default(false)
-	tb                Boolean     @default(true)
-	combine           Boolean     @default(false)
-	redirect          String      @default("")
+  channelId   String      @id
+  spoiler     Boolean     @default(true)
+  ping        String      @default("")
+  quirks      Boolean     @default(true)
+  tb          Boolean     @default(true)
+  combine     Boolean     @default(false)
+  redirect    String      @default("")
+  recoil      KillType    @default(D)
+  suicide     KillType    @default(D)
+  abilityitem KillType    @default(P)
+  selfteam    KillType    @default(N)
+  db          KillType    @default(P)
+  forfeit     KillType    @default(N)
+  format      StatsFormat @default(D)
+  leagueName  String
+  notalk      Boolean     @default(false)
+}
+
+enum KillType {
+  D
+  P
+  N
+}
+
+enum StatsFormat {
+  D
+  CSV
+  SPACE
+  TOUR
+}
+
+enum System {
+  D
+  C
+  DM
+  S
+  DL
+  R
 }
