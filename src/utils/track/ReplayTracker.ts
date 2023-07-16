@@ -242,17 +242,17 @@ class ReplayTracker {
                             ? ["Nothing happened"]
                             : battle.history;
 
-                    await axios.post(
-                        `https://server.porygonbot.xyz/kills/${this.battlelink}`,
-                        battle.history.join("<br>"),
-                        {
-                            headers: {
-                                "Content-Length": 0,
-                                "Content-Type": "text/plain",
-                            },
-                            responseType: "text",
-                        }
-                    );
+                    // await axios.post(
+                    //     `https://server.porygonbot.xyz/kills/${this.battlelink}`,
+                    //     battle.history.join("<br>"),
+                    //     {
+                    //         headers: {
+                    //             "Content-Length": 0,
+                    //             "Content-Type": "text/plain",
+                    //         },
+                    //         responseType: "text",
+                    //     }
+                    // );
 
                     //Setting up the final object for returning
                     const player1 = battle.p1;
