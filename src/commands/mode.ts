@@ -4,7 +4,7 @@ import {
     CommandInteractionOptionResolver,
     TextBasedChannel,
     GuildMember,
-    SelectMenuBuilder,
+    StringSelectMenuBuilder,
     ActionRowBuilder,
     GuildBasedChannel,
     ModalBuilder,
@@ -93,9 +93,9 @@ const generateRolesModal = async (interaction: CommandInteraction) => {
     // I will generate more modals if the user requests it in the modal response.
     for (let i = 0; i < 2; i++) {
         // Creates the select menu for the roles
-        let pingRow: ActionRowBuilder<SelectMenuBuilder> =
+        let pingRow: ActionRowBuilder<StringSelectMenuBuilder> =
             new ActionRowBuilder();
-        let pingSelect = new SelectMenuBuilder()
+        let pingSelect = new StringSelectMenuBuilder()
             .setCustomId("mode-roles-pings")
             .setPlaceholder("");
         // Gets all roles in the server that can be player roles
@@ -128,9 +128,9 @@ const generateRolesModal = async (interaction: CommandInteraction) => {
         pingRow.addComponents(pingSelect);
 
         // Creates the select menu for the channels
-        let channelRow: ActionRowBuilder<SelectMenuBuilder> =
+        let channelRow: ActionRowBuilder<StringSelectMenuBuilder> =
             new ActionRowBuilder();
-        let channelSelect = new SelectMenuBuilder()
+        let channelSelect = new StringSelectMenuBuilder()
             .setCustomId("mode-roles-channels")
             .setPlaceholder("");
         // Gets all channels in the server that can be results channels
