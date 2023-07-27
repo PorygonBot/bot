@@ -10,7 +10,7 @@ datasource db {
 
 model League {
   name             String
-  guildId          String
+  guildId          String?
   channelId        String  @id
   resultsChannelId String?
   dlId             String?
