@@ -34,12 +34,14 @@ export default {
             ]);
         }
 
-        return await interaction.reply({ embeds: [helpEmbed] }).catch(async (e) => {
-            await interaction.reply({
-                content: ":x: You need to enable embeds in this channel to use this command.",
-                ephemeral: true
-            }
-            );
-        });
+        try {
+            return await interaction.reply({ embeds: [helpEmbed] });
+        } catch (e) {
+            return await interaction.reply({
+                content:
+                    ":x: You need to enable embeds in this channel to use this command.",
+                ephemeral: true,
+            });
+        }
     },
 };

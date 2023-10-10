@@ -48,7 +48,7 @@ export default {
                     .setStyle(ButtonStyle.Danger),
             ]) as ActionRowBuilder<ButtonBuilder>;
 
-            await interaction.reply({
+            return await interaction.reply({
                 content: `Are you sure you want to delete ${league.name}`,
                 components: [row],
                 ephemeral: true,

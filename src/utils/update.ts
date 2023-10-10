@@ -445,7 +445,7 @@ const slashAnalyzeUpdate = async (
     //     discordUpdate(matchJson, message, league);
     // }
 
-    if (interaction.deferred) return await interaction.editReply(finalMessage);
+    if (interaction.deferred || interaction.replied) return await interaction.editReply(finalMessage);
 
     return await interaction.reply(finalMessage);
 };

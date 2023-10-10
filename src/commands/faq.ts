@@ -1,11 +1,18 @@
-import { EmbedBuilder, CommandInteraction, CommandInteractionOptionResolver } from "discord.js";
+import {
+    EmbedBuilder,
+    CommandInteraction,
+    CommandInteractionOptionResolver,
+} from "discord.js";
 import { Command } from "../types/index.js";
 
 export default {
     name: "faq",
     description:
         "An FAQ regarding setup of the bot and about the bot in general.",
-    async execute(interaction: CommandInteraction, options: CommandInteractionOptionResolver) {
+    async execute(
+        interaction: CommandInteraction,
+        options: CommandInteractionOptionResolver
+    ) {
         const faqEmbed = new EmbedBuilder()
             .setColor("#fc03d7")
             .setTitle("Porygon FAQ")
@@ -43,12 +50,14 @@ export default {
                 },
             ]);
 
-        return await interaction.reply({ embeds: [faqEmbed] }).catch(async (e) => {
-            await interaction.reply({
-                content: ":x: You need to enable embeds in this channel to use this command.",
-                ephemeral: true
-            }
-            );
-        });
+        try {
+            return await interaction.reply({ embeds: [faqEmbed] });
+        } catch (e) {
+            return await interaction.reply({
+                content:
+                    ":x: You need to enable embeds in this channel to use this command.",
+                ephemeral: true,
+            });
+        }
     },
 } as Command;
