@@ -7,7 +7,7 @@
         "migrate": "npx prisma migrate dev",
         "test": "tsc --build && node dist/tester.js",
         "dev": "tsc --build && node . --enable-source-map",
-        "start": "npx prisma migrate dev && npx prisma migrate deploy && node .",
+        "start": "npx prisma migrate deploy && tsc --build && node .",
         "postinstall": "tsc --build"
     },
     "repository": {
