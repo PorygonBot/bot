@@ -255,6 +255,7 @@ const discordUpdate = async (
 
     if (system === "DM") await author.send(finalMessage);
     else if (system === "C" && channelId && channel.guild) {
+        console.log("League: " + JSON.stringify(league));
         let streamChannel = funcs.getChannel(channel.guild, channelId);
 
         if (!streamChannel)
@@ -308,15 +309,8 @@ const sheetsUpdate = async (
         });
 
     if (info.rules.redirect && league) {
-        league.resultsChannelId = info.rules.redirect.substring(
-            2,
-            info.rules.redirect.length - 1
-        );
+        league.resultsChannelId = info.rules.redirect;
         league.system = "C";
-        league.resultsChannelId = info.rules.redirect.substring(
-            2,
-            info.rules.redirect.length - 1
-        );
         await discordUpdate(matchJson, channel, league, author);
     } else {
         return channel.send(
@@ -458,7 +452,8 @@ const update = async (matchJson: Stats, channel: TextChannel, author: User) => {
     const league = await Prisma.getLeague(channel.id);
     let system = league?.system;
 
-    console.log(league);
+    console.log(matchJson.info.rules.redirect);
+    console.log(league.resultsChannelId);
 
     if (matchJson.error) return await channel.send(matchJson.error);
 

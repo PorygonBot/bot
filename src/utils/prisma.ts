@@ -32,7 +32,7 @@ class Prisma {
         });
     }
 
-    static async leagueWhere<T>(prop: string, value: T) {
+    static async leagueWhere<T>(prop: keyof League, value: T) {
         let obj: { [key: string]: T } = {};
         obj[prop] = value;
         const leagues = await prisma.league.findMany({
@@ -47,7 +47,7 @@ class Prisma {
             where: {
                 channelId: channelId,
             },
-        });
+        }) as League;
 
         return league;
     }

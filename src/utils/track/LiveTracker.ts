@@ -2,7 +2,7 @@ import axios from "axios";
 import querystring from "querystring";
 import WebSocket from "ws";
 import { User, TextChannel } from "discord.js";
-import {Rules} from "@prisma/client";
+import {League, Rules} from "@prisma/client";
 import { Battle, Stats, Pokemon } from "../../types/index.js";
 import { sockets, funcs, consts, update } from "../index.js";
 
