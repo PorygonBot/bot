@@ -256,8 +256,12 @@ const discordUpdate = async (
     if (system === "DM") await author.send(finalMessage);
     else if (system === "C" && channelId && channel.guild) {
         let streamChannel = funcs.getChannel(channel.guild, channelId);
+
+        if (!streamChannel)
+            return await channel.send(":x: Something went wrong with the channel you provided. Please check if it exists and try running the mode command again to re-set up the bot.");
+
         if (streamChannel.isTextBased())
-            return await streamChannel.send(finalMessage);  
+            return await streamChannel.send(finalMessage);
     } else {
         //If notalk is enabled, it just DM's the author
         if (!info.rules.notalk) return await channel.send(finalMessage);
@@ -445,7 +449,8 @@ const slashAnalyzeUpdate = async (
     //     discordUpdate(matchJson, message, league);
     // }
 
-    if (interaction.deferred || interaction.replied) return await interaction.editReply(finalMessage);
+    if (interaction.deferred || interaction.replied)
+        return await interaction.editReply(finalMessage);
 
     return await interaction.reply(finalMessage);
 };
@@ -459,7 +464,8 @@ const update = async (matchJson: Stats, channel: TextChannel, author: User) => {
 
     try {
         if (league) {
-            if (system === "S") await sheetsUpdate(matchJson, channel, league, author);
+            if (system === "S")
+                await sheetsUpdate(matchJson, channel, league, author);
             else if (system === "R")
                 await roleUpdate(matchJson, channel, league, author);
             else await discordUpdate(matchJson, channel, league, author);
