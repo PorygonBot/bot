@@ -214,7 +214,7 @@ const genAppend = (matchJson: { [key: string]: any }, league: League) => {
 const discordUpdate = async (
     matchJson: Stats,
     channel: TextChannel,
-    league: League | null,
+    league: League,
     author: User
 ) => {
     let info = matchJson.info;
