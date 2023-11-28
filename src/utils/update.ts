@@ -214,12 +214,12 @@ const genAppend = (matchJson: { [key: string]: any }, league: League) => {
 const discordUpdate = async (
     matchJson: Stats,
     channel: TextChannel,
-    league: League,
+    league: League | null,
     author: User
 ) => {
     let info = matchJson.info;
     let system = league?.system || "D";
-    let channelId = league?.resultsChannelId;
+    let channelId = league ? league.resultsChannelId : channel.id;
 
     let messages = [];
     if (info.rules?.format === "CSV") messages = genCSV(matchJson);
@@ -451,9 +451,6 @@ const slashAnalyzeUpdate = async (
 const update = async (matchJson: Stats, channel: TextChannel, author: User) => {
     const league = await Prisma.getLeague(channel.id);
     let system = league?.system;
-
-    console.log(matchJson.info.rules.redirect);
-    console.log(league.resultsChannelId);
 
     if (matchJson.error) return await channel.send(matchJson.error);
 
