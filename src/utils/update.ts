@@ -259,7 +259,9 @@ const discordUpdate = async (
         let streamChannel = funcs.getChannel(channel.guild, channelId);
 
         if (!streamChannel)
-            return await channel.send(":x: Something went wrong with the channel you provided. Please check if it exists and try running the mode command again to re-set up the bot.");
+            return await channel.send(
+                ":x: Something went wrong with the channel you provided. Please check if it exists and try running the mode command again to re-set up the bot."
+            );
 
         if (streamChannel.isTextBased())
             return await streamChannel.send(finalMessage);
@@ -449,6 +451,7 @@ const slashAnalyzeUpdate = async (
     return await interaction.reply(finalMessage);
 };
 const update = async (matchJson: Stats, channel: TextChannel, author: User) => {
+
     const league = await Prisma.getLeague(channel.id);
     let system = league?.system;
 

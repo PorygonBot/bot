@@ -2,9 +2,10 @@ import axios from "axios";
 import querystring from "querystring";
 import WebSocket from "ws";
 import { User, TextChannel } from "discord.js";
-import {League, Rules} from "@prisma/client";
+import { League, Rules } from "@prisma/client";
 import { Battle, Stats, Pokemon } from "../../types/index.js";
 import { sockets, funcs, consts, update } from "../index.js";
+import { parse } from "node-html-parser";
 
 class LiveTracker {
     battlelink: string;
@@ -39,7 +40,7 @@ class LiveTracker {
 
             try {
                 for (let line of realdata) {
-                    console.log(line);
+                    // console.log(line);
                     dataArr.push(line);
 
                     //Separates the line into parts, separated by `|`
@@ -167,25 +168,12 @@ class LiveTracker {
                     }
 
                     //Getting the replay and returning all the data
-                    else if (line.startsWith("|queryresponse|savereplay")) {
+                    else if (line.startsWith("|popup||html|<p>Your replay")) {
                         if (battle) {
                             //Getting the replay
-                            const replayData = JSON.parse(line.substring(26));
-                            const replayUrl = `https://play.pokemonshowdown.com/~~${this.serverType}/action.php`;
-                            replayData.id = `${
-                                this.serverType === "showdown"
-                                    ? ""
-                                    : `${this.serverType}-`
-                            }${replayData.id}`;
-                            const replayNewData = querystring.stringify({
-                                act: "uploadreplay",
-                                log: replayData.log,
-                                id: replayData.id,
-                            });
-                            await axios
-                                .post(replayUrl, replayNewData)
-                                .catch((e) => console.error(e));
-                            battle.replay = `https://replay.pokemonshowdown.com/${replayData.id}`;
+                            battle.replay = parse(parts[3])
+                                .getElementsByTagName("copytext")[0]
+                                .getAttribute("value") || "";
 
                             //Giving mons their proper kills
                             //Team 1
@@ -438,6 +426,8 @@ class LiveTracker {
                                 }`,
                                 battleId: battle.id,
                             };
+
+                            console.log("GOD PLEASE HELP ME");
 
                             //Updating the stats
                             Battle.decrementBattles(this.battlelink);
