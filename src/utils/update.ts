@@ -3,6 +3,7 @@ import { Stats } from "../types/index.js";
 import { League } from "@prisma/client";
 import Prisma from "./prisma.js";
 import funcs from "./funcs.js";
+import client from "./client.js";
 import { google } from "googleapis";
 //Message Generators
 const genMessage = (matchJson: { [key: string]: any }) => {
@@ -253,6 +254,8 @@ const discordUpdate = async (
         }`;
     }
 
+    if (!client.user) return;
+
     if (system === "DM") await author.send(finalMessage);
     else if (system === "C" && channelId && channel.guild) {
         console.log("League: " + JSON.stringify(league));
@@ -263,11 +266,19 @@ const discordUpdate = async (
                 ":x: Something went wrong with the channel you provided. Please check if it exists and try running the mode command again to re-set up the bot."
             );
 
+        if (streamChannel.permissionsFor(client.user)?.has("SendMessages")) {
+            return await channel.send(":x: I do not have permission to send messages in this channel.");
+        }
+
         if (streamChannel.isTextBased())
             return await streamChannel.send(finalMessage);
     } else {
         //If notalk is enabled, it just DM's the author
-        if (!info.rules.notalk) return await channel.send(finalMessage);
+        if (!info.rules.notalk) {
+            if (channel.permissionsFor(client.user)?.has("SendMessages")) {
+                return await channel.send(":x: I do not have permission to send messages in this channel.");
+            }
+        }
         else
             return await author.send(
                 '***_Porygon doesn\'t have "Send Messages" permissions in the live links channel. Please give it those permissions and set the "notalk" rule to "true" in the channel._***\n\n' +
