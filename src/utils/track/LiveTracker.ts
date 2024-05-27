@@ -35,6 +35,10 @@ class LiveTracker {
         let battle: Battle;
         let returnData: Stats;
 
+        this.websocket.on("error", (err) => {
+            console.log(err);
+        });
+
         this.websocket.on("message", async (data) => {
             let realdata = data.toString()?.split("\n");
 
