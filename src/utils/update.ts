@@ -266,7 +266,7 @@ const discordUpdate = async (
                 ":x: Something went wrong with the channel you provided. Please check if it exists and try running the mode command again to re-set up the bot."
             );
 
-        if (streamChannel.permissionsFor(client.user)?.has("SendMessages")) {
+        if (!streamChannel.permissionsFor(client.user)?.has("SendMessages")) {
             return await channel.send(":x: I do not have permission to send messages in this channel.");
         }
 
@@ -275,7 +275,7 @@ const discordUpdate = async (
     } else {
         //If notalk is enabled, it just DM's the author
         if (!info.rules.notalk) {
-            if (channel.permissionsFor(client.user)?.has("SendMessages")) {
+            if (!channel.permissionsFor(client.user)?.has("SendMessages")) {
                 return await channel.send(":x: I do not have permission to send messages in this channel.");
             }
         }
