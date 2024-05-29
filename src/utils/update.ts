@@ -254,7 +254,12 @@ const discordUpdate = async (
         }`;
     }
 
-    if (!client.user) return;
+    console.log("exqueeze me");
+
+    if (!client.user) {
+        console.log("what the hell is going on")
+        return;
+    }
 
     if (system === "DM") await author.send(finalMessage);
     else if (system === "C" && channelId && channel.guild) {
@@ -278,6 +283,9 @@ const discordUpdate = async (
             if (!channel.permissionsFor(client.user)?.has("SendMessages")) {
                 return await channel.send(":x: I do not have permission to send messages in this channel.");
             }
+
+            if (channel.isTextBased())
+                return await channel.send(finalMessage);
         }
         else
             return await author.send(
