@@ -4,7 +4,7 @@ import WebSocket from "ws";
 import { User, TextChannel } from "discord.js";
 import { League, Rules } from "@prisma/client";
 import { Battle, Stats, Pokemon } from "../../types/index.js";
-import { sockets, funcs, consts, update } from "../index.js";
+import { sockets, funcs, consts, update, client } from "../index.js";
 import { parse } from "node-html-parser";
 
 class LiveTracker {
@@ -175,9 +175,10 @@ class LiveTracker {
                     else if (line.startsWith("|popup||html|<p>Your replay")) {
                         if (battle) {
                             //Getting the replay
-                            battle.replay = parse(parts[3])
-                                .getElementsByTagName("copytext")[0]
-                                .getAttribute("value") || "";
+                            battle.replay =
+                                parse(parts[3])
+                                    .getElementsByTagName("copytext")[0]
+                                    .getAttribute("value") || "";
 
                             //Giving mons their proper kills
                             //Team 1
@@ -2134,13 +2135,27 @@ class LiveTracker {
             } catch (e: any) {
                 process.stdout.write(`${this.battlelink}: `);
                 console.error(e);
-                return {
-                    error: `:x: Error with match number \`${
-                        this.battlelink
-                    }\`. I will be unable to analyze this match until you screenshot this message and send it to the Porygon server's bugs-and-help channel and ping harbar20 in the same channel.\n\n**Error:**\`\`\`${
-                        e.message
-                    }\nLine number: ${e.stack.split(":")[2]}\`\`\``,
-                };
+
+                if (!client.user) {
+                    console.log("what the hell is going on");
+                    return;
+                }
+
+                const errorMessage = `:x: Error with match number \`${
+                    this.battlelink
+                }\`. I will be unable to analyze this match until you screenshot this message and send it to the Porygon server's bugs-and-help channel and ping harbar20 in the same channel.\n\n**Error:**\`\`\`${
+                    e.message
+                }\nLine number: ${e.stack.split(":")[2]}\`\`\``;
+
+                if (
+                    this.channel
+                        .permissionsFor(client.user)
+                        ?.has("SendMessages")
+                ) {
+                    return this.channel.send(errorMessage);
+                } else {
+                    return this.author.send(errorMessage);
+                }
             }
         });
     }
