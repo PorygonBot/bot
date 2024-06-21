@@ -185,7 +185,6 @@ const messageFunction = async (message: Message) => {
                     message.author
                 );
                 await tracker.track();
-                console.log("tracking");
             }
         } catch (e) {
             console.error(e);

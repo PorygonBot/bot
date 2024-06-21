@@ -254,8 +254,6 @@ const discordUpdate = async (
         }`;
     }
 
-    console.log("exqueeze me");
-
     if (!client.user) {
         console.log("what the hell is going on")
         return;
@@ -263,7 +261,6 @@ const discordUpdate = async (
 
     if (system === "DM") await author.send(finalMessage);
     else if (system === "C" && channelId && channel.guild) {
-        console.log("League: " + JSON.stringify(league));
         let streamChannel = funcs.getChannel(channel.guild, channelId);
 
         if (!streamChannel)
@@ -368,8 +365,6 @@ const roleUpdate = async (
                     messages = genTour(matchJson);
                 else messages = genMessage(matchJson);
 
-                console.log(matchJson);
-
                 let psPlayer1 = matchJson.playerNames[0];
                 let psPlayer2 = matchJson.playerNames[1];
                 let message1 = messages[0];
@@ -422,8 +417,6 @@ const slashAnalyzeUpdate = async (
     else if (info.rules?.format === "SPACE") messages = genSheets(matchJson);
     else if (info.rules?.format === "TOUR") messages = genTour(matchJson);
     else messages = genMessage(matchJson);
-
-    console.log(matchJson);
 
     let psPlayer1 = matchJson.playerNames[0];
     let psPlayer2 = matchJson.playerNames[1];

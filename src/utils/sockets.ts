@@ -4,8 +4,8 @@ const sockets: { [key: string]: Socket } = {
     showdown: {
         name: "Showdown",
         link: "https://play.pokemonshowdown.com",
-        ip: "sim3.psim.us:8000",
-        server: "ws://sim3.psim.us:8000/showdown/websocket",
+        ip: "sim3.psim.us",
+        server: "wss://sim3.psim.us/showdown/websocket",
     },
     dawn: {
         name: "Dawn",

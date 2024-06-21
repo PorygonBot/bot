@@ -432,8 +432,6 @@ class LiveTracker {
                                 battleId: battle.id,
                             };
 
-                            console.log("GOD PLEASE HELP ME");
-
                             //Updating the stats
                             Battle.decrementBattles(this.battlelink);
                             await update(
