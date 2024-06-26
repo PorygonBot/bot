@@ -242,6 +242,7 @@ const misnomers = [
     "Alcremie-Rainbow-Swirl",
     "Indeedee-F",
     "Zarude-Dada",
+    "Palafin-Hero"
 ];
 
 //Other bot stuff
