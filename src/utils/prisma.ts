@@ -43,11 +43,11 @@ class Prisma {
     }
 
     static async getLeague(channelId: string) {
-        const league = await prisma.league.findUnique({
+        const league = (await prisma.league.findUnique({
             where: {
                 channelId: channelId,
             },
-        }) as League;
+        })) as League;
 
         return league;
     }
@@ -111,25 +111,17 @@ class Prisma {
             redirect: "",
         };
 
-        const numLeagues = await prisma.rules.count({
-            where: {
-                channelId: channelId,
-            },
-        });
+        let prismaRules = await prisma.rules
+            .findUnique({
+                where: {
+                    channelId: channelId,
+                },
+            })
+            .catch((e: Error) => {
+                console.error(e);
+            });
 
-        if (numLeagues >= 1) {
-            let prismaRules = await prisma.rules
-                .findUnique({
-                    where: {
-                        channelId: channelId,
-                    },
-                })
-                .catch((e: Error) => {
-                    console.error(e);
-                });
-
-            if (prismaRules) rules = prismaRules;
-        }
+        if (prismaRules) return prismaRules;
 
         return rules;
     }
