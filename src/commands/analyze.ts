@@ -22,21 +22,6 @@ export default {
         const urlRegex = /(https?:\/\/[^ ]*)/;
         const links = replayLink.match(urlRegex);
 
-        // Discord interaction message limit is 2000, so if it errors, it has to error properly
-        if (replayLink.length >= 1950) {
-            return await interaction.reply({
-                content: `:x: Your replay length is too long.`,
-                ephemeral: true,
-            });
-        }
-
-        // Checks if given link is a valid replay
-        if (!(replayLink.includes("replay") && links)) {
-            return await interaction.reply({
-                content: `:x: ${replayLink} is not a replay.`,
-                ephemeral: true,
-            });
-        }
         // Checks if bot has send messages perms
         let channel = interaction.channel;
         const hasSendMessages =
@@ -52,6 +37,22 @@ export default {
         }
 
         await interaction.reply("Analyzing...");
+
+        // Discord interaction message limit is 2000, so if it errors, it has to error properly
+        if (replayLink.length >= 1950) {
+            return await interaction.reply({
+                content: `:x: Your replay length is too long.`,
+                ephemeral: true,
+            });
+        }
+
+        // Checks if given link is a valid replay
+        if (!(replayLink.includes("replay") && links)) {
+            return await interaction.reply({
+                content: `:x: ${replayLink} is not a replay.`,
+                ephemeral: true,
+            });
+        }
 
         // Gets the replay plog
         let link = replayLink + ".log";
