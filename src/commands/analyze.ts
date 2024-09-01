@@ -40,17 +40,15 @@ export default {
 
         // Discord interaction message limit is 2000, so if it errors, it has to error properly
         if (replayLink.length >= 1950) {
-            return await interaction.reply({
-                content: `:x: Your replay length is too long.`,
-                ephemeral: true,
+            return await interaction.editReply({
+                content: `:x: Your replay length is too long.`
             });
         }
 
         // Checks if given link is a valid replay
         if (!(replayLink.includes("replay") && links)) {
-            return await interaction.reply({
-                content: `:x: ${replayLink} is not a replay.`,
-                ephemeral: true,
+            return await interaction.editReply({
+                content: `:x: ${replayLink} is not a replay.`
             });
         }
 
