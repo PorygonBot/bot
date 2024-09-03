@@ -255,7 +255,7 @@ const discordUpdate = async (
     }
 
     if (!client.user) {
-        console.log("what the hell is going on")
+        console.log("what the hell is going on");
         return;
     }
 
@@ -269,7 +269,9 @@ const discordUpdate = async (
             );
 
         if (!streamChannel.permissionsFor(client.user)?.has("SendMessages")) {
-            return await channel.send(":x: I do not have permission to send messages in this channel.");
+            return await channel.send(
+                ":x: I do not have permission to send messages in this channel."
+            );
         }
 
         if (streamChannel.isTextBased())
@@ -278,13 +280,13 @@ const discordUpdate = async (
         //If notalk is enabled, it just DM's the author
         if (!info.rules.notalk) {
             if (!channel.permissionsFor(client.user)?.has("SendMessages")) {
-                return await channel.send(":x: I do not have permission to send messages in this channel.");
+                return await channel.send(
+                    ":x: I do not have permission to send messages in this channel."
+                );
             }
 
-            if (channel.isTextBased())
-                return await channel.send(finalMessage);
-        }
-        else
+            if (channel.isTextBased()) return await channel.send(finalMessage);
+        } else
             return await author.send(
                 '***_Porygon doesn\'t have "Send Messages" permissions in the live links channel. Please give it those permissions and set the "notalk" rule to "true" in the channel._***\n\n' +
                     finalMessage
@@ -307,7 +309,11 @@ const sheetsUpdate = async (
         ],
     });
     google.options({ auth: serviceAuth });
-    let sheets = google.sheets({
+    const drive = google.drive({
+        version: "v3",
+        auth: serviceAuth,
+    });
+    const sheets = google.sheets({
         version: "v4",
         auth: serviceAuth,
     });
@@ -317,13 +323,31 @@ const sheetsUpdate = async (
     let info = matchJson.info;
     const final = genAppend(matchJson, league);
 
+    // Check if I have editing permissions first
+    const permissionResponse = await drive.files.get({
+        fileId: final.spreadsheetId || "",
+        fields: "capabilities(canEdit)",
+    });
+
+    if (
+        permissionResponse.data.capabilities &&
+        !permissionResponse.data.capabilities.canEdit
+    ) {
+        return channel.send(
+            ":x: I do not have permission to edit the file you provided. If you want me to automatically update your sheet, please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`."
+        );
+    }
+
     let res = await sheets.spreadsheets.values
         .append(final as any)
-        .catch((e: Error) => {
-            return channel.send(
-                ":x: I do not have permission to edit the file you provided. If you want me to automatically update your sheet, please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`."
-            );
-            console.error(e);
+        .catch((e) => {
+            if (e.code === 400 && e.message.includes("Unable to parse range")) {
+                return channel.send(
+                    ":x: Please add a tab called `Raw Stats` to your sheet. That is where I will put the stats."
+                );
+            } else {
+                console.error(e);
+            }
         });
 
     if (info.rules.redirect && league) {
@@ -463,7 +487,6 @@ const slashAnalyzeUpdate = async (
     return await interaction.reply(finalMessage);
 };
 const update = async (matchJson: Stats, channel: TextChannel, author: User) => {
-
     const league = await Prisma.getLeague(channel.id);
     let system = league?.system;
 
@@ -472,11 +495,11 @@ const update = async (matchJson: Stats, channel: TextChannel, author: User) => {
     try {
         if (league) {
             if (system === "S")
-                await sheetsUpdate(matchJson, channel, league, author);
+                return await sheetsUpdate(matchJson, channel, league, author);
             else if (system === "R")
-                await roleUpdate(matchJson, channel, league, author);
-            else await discordUpdate(matchJson, channel, league, author);
-        } else await discordUpdate(matchJson, channel, league, author);
+                return await roleUpdate(matchJson, channel, league, author);
+            else return await discordUpdate(matchJson, channel, league, author);
+        } else return await discordUpdate(matchJson, channel, league, author);
     } catch (e: any) {
         console.error(e);
         return await channel.send(

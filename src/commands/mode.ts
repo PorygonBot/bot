@@ -64,7 +64,7 @@ const updateDb = async (
                 modes[mode] || "Default"
             } mode! ${
                 modes[mode] === "Sheets"
-                    ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`; I won't be able to work without it."
+                    ? "Please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com` and have a tab called \`Raw Stats\`; I won't be able to work without it."
                     : ""
             }`,
             ephemeral: true,
