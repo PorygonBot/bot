@@ -1,4 +1,9 @@
-import { CommandInteraction, TextChannel, User } from "discord.js";
+import {
+    CommandInteraction,
+    PermissionResolvable,
+    TextChannel,
+    User,
+} from "discord.js";
 import { Stats } from "../types/index.js";
 import { League } from "@prisma/client";
 import Prisma from "./prisma.js";
@@ -268,9 +273,18 @@ const discordUpdate = async (
                 ":x: Something went wrong with the channel you provided. Please check if it exists and try running the mode command again to re-set up the bot."
             );
 
-        if (!streamChannel.permissionsFor(client.user)?.has("SendMessages")) {
+        const botGuildMember = await streamChannel.guild.members.fetch(
+            client.user.id
+        );
+
+        if (
+            !streamChannel.isDMBased() &&
+            !streamChannel
+                .permissionsFor(botGuildMember)
+                ?.has("SendMessages" as PermissionResolvable)
+        ) {
             return await channel.send(
-                ":x: I do not have permission to send messages in this channel."
+                `:x: I do not have permission to send messages in ${streamChannel.name}.`
             );
         }
 
