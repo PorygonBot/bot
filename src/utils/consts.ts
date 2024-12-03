@@ -242,7 +242,17 @@ const misnomers = [
     "Alcremie-Rainbow-Swirl",
     "Indeedee-F",
     "Zarude-Dada",
-    "Palafin-Hero"
+    "Palafin-Hero",
+    "Minior-Red",
+    "Minior-Orange",
+    "Minior-Yellow",
+    "Minior-Green",
+    "Minior-Blue",
+    "Minior-Indigo",
+    "Minior-Violet",
+    "Maushold-Four",
+    "Sinistcha-Masterpiece",
+    "Dudunsparce-Three-Segment",
 ];
 
 //Other bot stuff
@@ -293,13 +303,7 @@ const battleRules = [
     "db",
     "forfeit",
 ];
-const boolRules = [
-    "spoiler",
-    "tb",
-    "combine",
-    "quirks",
-    "notalk"
-];
+const boolRules = ["spoiler", "tb", "combine", "quirks", "notalk"];
 
 const consts = {
     recoilMoves,
@@ -308,9 +312,9 @@ const consts = {
     statusAbility,
     hazardMoves,
     misnomers,
-	quirkyMessages,
-	battleRules,
-    boolRules
+    quirkyMessages,
+    battleRules,
+    boolRules,
 };
 
 export default consts;
