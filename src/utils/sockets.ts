@@ -31,6 +31,12 @@ const sockets: { [key: string]: Socket } = {
         ip: "api.staraptorshowdown.com:443",
         server: "ws://api.staraptorshowdown.com/showdown/websocket"
     },
+pokeathlon: {
+        name: "Pokeathlon",
+        link: "https://play.pokeathlon.com/",
+        ip: "sim.pokeathlon.com:8000",
+        server: "ws://sim.pokeathlon.com/showdown/websocket"
+    },
 };
 
 export default sockets;
