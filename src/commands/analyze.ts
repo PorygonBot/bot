@@ -18,7 +18,7 @@ export default {
         interaction: CommandInteraction,
         options: CommandInteractionOptionResolver
     ) {
-        const replayLink = options.getString("replay") as string;
+        let replayLink = options.getString("replay") as string;
         const urlRegex = /(https?:\/\/[^ ]*)/;
         const links = replayLink.match(urlRegex);
 
@@ -50,6 +50,12 @@ export default {
             return await interaction.editReply({
                 content: `:x: ${replayLink} is not a replay.`
             });
+        }
+
+        // EXTRA CODE FOR POKEATHLON ONLY
+        if (replayLink.includes("pokeathlon")) {
+            const replayID = replayLink.split("=")[1]
+            replayLink = "https://sim.pokeathlon.com/replays/" + replayID;
         }
 
         // Gets the replay plog
