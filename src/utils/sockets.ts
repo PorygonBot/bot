@@ -25,6 +25,18 @@ const sockets: { [key: string]: Socket } = {
         ip: "dlsim.radicalred.net:8000",
         server: "ws://dlsim.radicalred.net:8000/showdown/websocket",
     },
+    staraptorshowdown: {
+        name: "Staraptor Showdown",
+        link: "https://staraptorshowdown.com/",
+        ip: "api.staraptorshowdown.com:443",
+        server: "ws://api.staraptorshowdown.com/showdown/websocket"
+    },
+pokeathlon: {
+        name: "Pokeathlon",
+        link: "https://play.pokeathlon.com/",
+        ip: "sim.pokeathlon.com:8000",
+        server: "ws://sim.pokeathlon.com/showdown/websocket"
+    },
 };
 
 export default sockets;
