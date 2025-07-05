@@ -281,7 +281,10 @@ const discordUpdate = async (
             !streamChannel.isDMBased() &&
             !streamChannel
                 .permissionsFor(botGuildMember)
-                ?.has("SendMessages" as PermissionResolvable)
+                ?.has("ViewChannel") &&
+            !streamChannel
+                .permissionsFor(botGuildMember)
+                ?.has("SendMessages")
         ) {
             return await channel.send(
                 `:x: I do not have permission to send messages in ${streamChannel.name}.`

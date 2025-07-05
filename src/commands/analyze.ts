@@ -97,3 +97,12 @@ export default {
         console.log(`${link} has been analyzed!`);
     },
 } as Command;
+
+
+/**
+ * SELECT student_id, meeting_id, title, recording_number
+ * FROM  (
+ *      watched AS w JOIN (SELECT * FROM meeting WHERE course_id = 'CS451') AS m ON m.meeting_id = w.meeting_id
+ * ) JOIN (SELECT * FROM attended WHERE )
+ * ORDER BY student_id;
+ */
