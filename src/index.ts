@@ -120,74 +120,70 @@ const messageFunction = async (message: Message) => {
             channel.name.includes("live-battles")) &&
         channel.type == ChannelType.GuildText
     ) {
-        try {
-            //Extracting battlelink from the message
-            const urlRegex = /(https?:\/\/[^ ]*)/;
-            const links = msgStr.match(urlRegex);
-            let battlelink = "";
-            if (links) battlelink = links[0];
-            let battleId = battlelink && battlelink.split("/")[3];
+        //Extracting battlelink from the message
+        const urlRegex = /(https?:\/\/[^ ]*)/;
+        const links = msgStr.match(urlRegex);
+        let battlelink = "";
+        if (links) battlelink = links[0];
+        let battleId = battlelink && battlelink.split("/")[3];
 
-            if (Battle.battles.includes(battleId) && battleId !== "") {
+        if (Battle.battles.includes(battleId) && battleId !== "") {
+            await channel.send(
+                `:x: I'm already tracking battle \`${battleId}\`. If you think this is incorrect, send a replay of this match in the #bugs-and-help channel in the Porygon server.`
+            );
+
+            return;
+        }
+
+        if (
+            battlelink &&
+            !(
+                battlelink.includes("google") ||
+                battlelink.includes("replay") ||
+                battlelink.includes("draft-league.nl") ||
+                battlelink.includes("porygonbot.xyz")
+            )
+        ) {
+            let server = Object.values(sockets).filter((socket) =>
+                battlelink.includes(socket.link)
+            )[0];
+            if (!server) {
                 await channel.send(
-                    `:x: I'm already tracking battle \`${battleId}\`. If you think this is incorrect, send a replay of this match in the #bugs-and-help channel in the Porygon server.`
+                    "This link is not a valid Pokemon Showdown battle url."
                 );
 
                 return;
             }
 
-            if (
-                battlelink &&
-                !(
-                    battlelink.includes("google") ||
-                    battlelink.includes("replay") ||
-                    battlelink.includes("draft-league.nl") ||
-                    battlelink.includes("porygonbot.xyz")
-                )
-            ) {
-                let server = Object.values(sockets).filter((socket) =>
-                    battlelink.includes(socket.link)
-                )[0];
-                if (!server) {
-                    await channel.send(
-                        "This link is not a valid Pokemon Showdown battle url."
-                    );
+            //Getting the rules
+            let rules = await Prisma.getRules(channel.id);
 
-                    return;
-                }
-
-                //Getting the rules
-                let rules = await Prisma.getRules(channel.id);
-
-                //Check if bot has SEND_MESSAGES perms in the channel
-                if (hasSendMessages) {
-                    rules.notalk = true;
-                }
-
-                console.log("Battle link received.");
-                if (!rules.notalk)
-                    await channel
-                        .send("Joining the battle...")
-                        .catch((e: Error) => console.error(e));
-
-                Battle.incrementBattles(battleId);
-                client.user!.setActivity(
-                    `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
-                    {
-                        type: ActivityType.Watching,
-                    }
-                );
-                let tracker = new LiveTracker(
-                    battleId,
-                    server.name,
-                    rules,
-                    channel,
-                    message.author
-                );
-                await tracker.track();
+            //Check if bot has SEND_MESSAGES perms in the channel
+            if (hasSendMessages) {
+                rules.notalk = true;
             }
-        } catch (e) {
-            console.error(e);
+
+            console.log("Battle link received.");
+            if (!rules.notalk)
+                await channel
+                    .send("Joining the battle...")
+                    .catch((e: Error) => console.error(e));
+
+            Battle.incrementBattles(battleId);
+            client.user!.setActivity(
+                `${Battle.numBattles} PS Battles in ${client.guilds.cache.size} servers.`,
+                {
+                    type: ActivityType.Watching,
+                }
+            );
+            let tracker = new LiveTracker(
+                battleId,
+                server.name,
+                rules,
+                channel,
+                message.author
+            );
+            await tracker.track();
         }
     }
 
@@ -217,15 +213,7 @@ const messageFunction = async (message: Message) => {
             );
         if (!command) return;
 
-        //Running the command
-        try {
-            await command.execute(message, args, client);
-        } catch (error: any) {
-            console.error(error);
-            message.reply(
-                `There was an error trying to execute that command!\n\n\`\`\`${error.stack}\`\`\``
-            );
-        }
+        await command.execute(message, args, client);
     }
 };
 client.on("messageCreate", messageFunction);

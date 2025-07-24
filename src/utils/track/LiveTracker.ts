@@ -2127,7 +2127,11 @@ class LiveTracker {
                 }\nLine number: ${e.stack.split(":")[2]}\`\`\``;
 
                 if (
-                    this.channel
+                    !this.channel.isDMBased() &&
+                    !this.channel
+                        .permissionsFor(client.user)
+                        ?.has("ViewChannel") &&
+                    !this.channel
                         .permissionsFor(client.user)
                         ?.has("SendMessages")
                 ) {
