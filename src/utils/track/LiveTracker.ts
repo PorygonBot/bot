@@ -440,6 +440,25 @@ class LiveTracker {
                                 this.author
                             );
 
+                            if (!client.user) {
+                                console.log("what the hell is going on");
+                                return;
+                            }
+
+                            const botGuildMember = await this.channel.guild.members.fetch(
+                                client.user.id
+                            );
+                    
+                            if (
+                                !this.channel.isDMBased() &&
+                                !this.channel.permissionsFor(botGuildMember)?.has("ViewChannel") &&
+                                !this.channel.permissionsFor(botGuildMember)?.has("SendMessages")
+                            ) {
+                                return await this.author.send(
+                                    `:x: I do not have permission to send messages in ${this.channel.name}.`
+                                );
+                            }
+
                             //Done!
                             if (!this.rules.notalk)
                                 this.channel.send(
