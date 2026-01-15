@@ -368,6 +368,20 @@ const sheetsUpdate = async (
         league.system = "C";
         await discordUpdate(matchJson, channel, league, author);
     } else {
+        const botGuildMember = await channel.guild.members.fetch(
+            client.user?.id as string
+        );
+
+        if (
+            !channel.isDMBased() &&
+            !channel.permissionsFor(botGuildMember)?.has("ViewChannel") &&
+            !channel.permissionsFor(botGuildMember)?.has("SendMessages")
+        ) {
+            return await author.send(
+                `:x: I do not have permission to send messages in ${channel.name}.`
+            );
+        }
+
         return channel.send(
             `Battle between \`${psPlayer1}\` and \`${psPlayer2}\` is complete and info has been updated!\n**Replay:** ${matchJson.info.replay}\n**History:** ${matchJson.info.history}`
         );

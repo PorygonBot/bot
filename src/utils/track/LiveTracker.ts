@@ -445,14 +445,19 @@ class LiveTracker {
                                 return;
                             }
 
-                            const botGuildMember = await this.channel.guild.members.fetch(
-                                client.user.id
-                            );
-                    
+                            const botGuildMember =
+                                await this.channel.guild.members.fetch(
+                                    client.user.id
+                                );
+
                             if (
                                 !this.channel.isDMBased() &&
-                                !this.channel.permissionsFor(botGuildMember)?.has("ViewChannel") &&
-                                !this.channel.permissionsFor(botGuildMember)?.has("SendMessages")
+                                !this.channel
+                                    .permissionsFor(botGuildMember)
+                                    ?.has("ViewChannel") &&
+                                !this.channel
+                                    .permissionsFor(botGuildMember)
+                                    ?.has("SendMessages")
                             ) {
                                 return await this.author.send(
                                     `:x: I do not have permission to send messages in ${this.channel.name}.`
@@ -460,10 +465,20 @@ class LiveTracker {
                             }
 
                             //Done!
-                            if (!this.rules.notalk)
-                                this.channel.send(
-                                    `Battle between \`${player1}\` and \`${player2}\` is complete and info has been updated!`
-                                );
+                            if (
+                                !this.channel.isDMBased() &&
+                                this.channel
+                                    .permissionsFor(botGuildMember)
+                                    ?.has("ViewChannel") &&
+                                this.channel
+                                    .permissionsFor(botGuildMember)
+                                    ?.has("SendMessages")
+                            ) {
+                                if (!this.rules.notalk)
+                                    this.channel.send(
+                                        `Battle between \`${player1}\` and \`${player2}\` is complete and info has been updated!`
+                                    );
+                            }
                             this.websocket.send(`|/leave ${this.battlelink}`);
                             this.websocket.close();
                         }
