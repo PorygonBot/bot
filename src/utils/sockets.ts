@@ -29,13 +29,19 @@ const sockets: { [key: string]: Socket } = {
         name: "Staraptor Showdown",
         link: "https://staraptorshowdown.com/",
         ip: "api.staraptorshowdown.com:443",
-        server: "ws://api.staraptorshowdown.com/showdown/websocket"
+        server: "ws://api.staraptorshowdown.com/showdown/websocket",
     },
-pokeathlon: {
+    pokeathlon: {
         name: "Pokeathlon",
         link: "https://play.pokeathlon.com/",
         ip: "sim.pokeathlon.com:8000",
-        server: "ws://sim.pokeathlon.com/showdown/websocket"
+        server: "ws://sim.pokeathlon.com/showdown/websocket",
+    },
+    heroicemolga: {
+        name: "HeroIceMolga",
+        link: "https://heroicemolga.serveminecraft.net/",
+        ip: "sdpsserver.zapto.org:8000",
+        server: "ws://sdpsserver.zapto.org/showdown/websocket",
     },
 };
 
