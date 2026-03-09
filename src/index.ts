@@ -45,27 +45,46 @@ client.on("guildDelete", () => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-    if (interaction.isCommand()) {
-        //Getting info from the message if it's not a live link
-        const commandName = interaction.commandName;
-        const options = interaction.options;
+    try {
+        if (interaction.isCommand()) {
+            //Getting info from the message if it's not a live link
+            const commandName = interaction.commandName;
+            const options = interaction.options;
 
-        //Getting the actual command
-        const command = commands.get(commandName);
-        if (!command) return;
+            //Getting the actual command
+            const command = commands.get(commandName);
+            if (!command) return;
 
-        //Running the command
-        await command.execute(interaction, options);
-    } else if (
-        (interaction.isButton() || interaction.isStringSelectMenu()) &&
-        interaction.message.interaction
-    ) {
-        const commandName = interaction.message.interaction.commandName;
+            //Running the command
+            await command.execute(interaction, options);
+        } else if (
+            (interaction.isButton() || interaction.isStringSelectMenu()) &&
+            interaction.message.interaction
+        ) {
+            const commandName = interaction.message.interaction.commandName;
 
-        const command = commands.get(commandName);
-        if (!(command && command.buttonResponse)) return;
+            const command = commands.get(commandName);
+            if (!(command && command.buttonResponse)) return;
 
-        await command.buttonResponse(interaction);
+            await command.buttonResponse(interaction);
+        }
+    } catch (error) {
+        console.error("Unhandled interaction error:", error);
+
+        if (!interaction.isRepliable()) return;
+
+        const errorMessage =
+            ":x: Something went wrong while processing that interaction.";
+
+        if (interaction.deferred || interaction.replied) {
+            await interaction.editReply(errorMessage).catch(console.error);
+            return;
+        }
+
+        await interaction.reply({
+            content: errorMessage,
+            ephemeral: true,
+        }).catch(console.error);
     }
 });
 
@@ -216,7 +235,15 @@ const messageFunction = async (message: Message) => {
         await command.execute(message, args, client);
     }
 };
-client.on("messageCreate", messageFunction);
+client.on("messageCreate", (message) => {
+    void messageFunction(message).catch((error) => {
+        console.error("Unhandled messageCreate error:", error);
+    });
+});
+
+client.on("error", (error) => {
+    console.error("Discord client error:", error);
+});
 
 // Log the client in.
 client.login(process.env.TOKEN);

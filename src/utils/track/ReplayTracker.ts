@@ -23,6 +23,8 @@ class ReplayTracker {
             //Separates the data into lines so it's easy to parse
             let realdata = data.split("\n");
 
+            console.log(realdata);
+
             for (const line of realdata) {
                 // console.log(line);
                 dataArr.push(line);
@@ -1668,7 +1670,7 @@ class ReplayTracker {
                     result: string;
                     battleId: string;
                 },
-                error: ":x: :x: Something went wrong. Please try again. :x: :x: ",
+                error: ":x: :x: Reply couldn't be analyzed properly. Please try again. :x: :x: ",
             };
         } catch (e: any) {
             process.stdout.write(`${this.battlelink}: `);

@@ -66,13 +66,13 @@ export default {
             })
             .catch(async (e) => {
                 await interaction.editReply(
-                    ":x: Something went wrong. Please check your replay link."
+                    ":x: Replay log couldn't be found. Please check your replay link."
                 );
                 return;
             });
         if (!(response && interaction.channel))
             return await interaction.editReply(
-                ":x: Something went wrong. Please check your replay link."
+                ":x: Replay log couldn't be found, or interaction channel is not found. Please check your replay link."
             );
         let data = response.data;
 

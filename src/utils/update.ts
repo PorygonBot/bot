@@ -216,6 +216,55 @@ const genAppend = (matchJson: { [key: string]: any }, league: League) => {
     };
 };
 
+const SAFE_SEND_ERROR_CODES = new Set([10003, 50001, 50007, 50013]);
+
+const isSafeSendError = (error: unknown): error is { code: number } => {
+    if (!error || typeof error !== "object" || !("code" in error)) {
+        return false;
+    }
+
+    return SAFE_SEND_ERROR_CODES.has(Number(error.code));
+};
+
+const safeSend = async (
+    target: { send: (content: string) => Promise<unknown> },
+    content: string,
+    context: string,
+    fallback?: () => Promise<unknown>
+) => {
+    try {
+        return await target.send(content);
+    } catch (error) {
+        if (isSafeSendError(error)) {
+            console.warn(`Discord send failed for ${context}:`, error);
+            if (fallback) {
+                try {
+                    return await fallback();
+                } catch (fallbackError) {
+                    console.warn(
+                        `Discord fallback send failed for ${context}:`,
+                        fallbackError
+                    );
+                    return;
+                }
+            }
+
+            return;
+        }
+
+        throw error;
+    }
+};
+
+const hasSendAccess = (
+    channel: { permissionsFor: TextChannel["permissionsFor"] },
+    member: User
+) =>
+    channel.permissionsFor(member)?.has([
+        "ViewChannel" as PermissionResolvable,
+        "SendMessages" as PermissionResolvable,
+    ]) ?? false;
+
 //Updaters
 const discordUpdate = async (
     matchJson: Stats,
@@ -264,45 +313,96 @@ const discordUpdate = async (
         return;
     }
 
-    if (system === "DM") await author.send(finalMessage);
+    if (system === "DM")
+        return await safeSend(
+            author,
+            finalMessage,
+            `DM results to ${author.id}`
+        );
     else if (system === "C" && channelId && channel.guild) {
         let streamChannel = funcs.getChannel(channel.guild, channelId);
 
         if (!streamChannel)
-            return await channel.send(
-                ":x: Something went wrong with the channel you provided. Please check if it exists and try running the mode command again to re-set up the bot."
+            return await safeSend(
+                channel,
+                ":x: Something went wrong with the channel you provided. Please check if it exists and try running the mode command again to re-set up the bot.",
+                `results setup warning in ${channel.name}`,
+                () =>
+                    safeSend(
+                        author,
+                        ":x: Something went wrong with the configured results channel. Please run the mode command again to re-set up the bot.",
+                        `results setup DM to ${author.id}`
+                    )
             );
 
-        const botGuildMember = await streamChannel.guild.members.fetch(
-            client.user.id
-        );
+        const resultsChannel = streamChannel;
 
-        if (
-            !streamChannel.isDMBased() &&
-            !streamChannel.permissionsFor(botGuildMember)?.has("ViewChannel") &&
-            !streamChannel.permissionsFor(botGuildMember)?.has("SendMessages")
-        ) {
-            return await channel.send(
-                `:x: I do not have permission to send messages in ${streamChannel.name}.`
+        if (!resultsChannel.isTextBased())
+            return await safeSend(
+                channel,
+                ":x: The configured results channel is not text-based. Please run the mode command again to choose a text channel.",
+                `non-text results channel warning in ${channel.name}`,
+                () =>
+                    safeSend(
+                        author,
+                        ":x: The configured results channel is not text-based. Please run the mode command again to choose a text channel.",
+                        `non-text results channel DM to ${author.id}`
+                    )
+            );
+
+        if (!hasSendAccess(resultsChannel, client.user)) {
+            return await safeSend(
+                channel,
+                `:x: I do not have permission to send messages in ${resultsChannel.name}.`,
+                `results permission warning in ${channel.name}`,
+                () =>
+                    safeSend(
+                        author,
+                        `:x: I do not have permission to send messages in ${resultsChannel.name}.`,
+                        `results permission DM to ${author.id}`
+                    )
             );
         }
 
-        if (streamChannel.isTextBased())
-            return await streamChannel.send(finalMessage);
+        return await safeSend(
+            resultsChannel,
+            finalMessage,
+            `results update in ${resultsChannel.name}`,
+            () =>
+                safeSend(
+                    author,
+                    `:x: I couldn't post the results in ${resultsChannel.name}, so I'm sending them here instead.\n\n${finalMessage}`,
+                    `results fallback DM to ${author.id}`
+                )
+        );
     } else {
         //If notalk is enabled, it just DM's the author
         if (!info.rules.notalk) {
-            if (!channel.permissionsFor(client.user)?.has("SendMessages")) {
-                return await channel.send(
-                    ":x: I do not have permission to send messages in this channel."
+            if (!hasSendAccess(channel, client.user)) {
+                return await safeSend(
+                    author,
+                    `:x: I do not have permission to send messages in ${channel.name}.`,
+                    `channel permission DM to ${author.id}`
                 );
             }
 
-            if (channel.isTextBased()) return await channel.send(finalMessage);
+            return await safeSend(
+                channel,
+                finalMessage,
+                `results update in ${channel.name}`,
+                () =>
+                    safeSend(
+                        author,
+                        finalMessage,
+                        `results fallback DM to ${author.id}`
+                    )
+            );
         } else
-            return await author.send(
+            return await safeSend(
+                author,
                 '***_Porygon doesn\'t have "Send Messages" permissions in the live links channel. Please give it those permissions and set the "notalk" rule to "true" in the channel._***\n\n' +
-                    finalMessage
+                    finalMessage,
+                `notalk DM to ${author.id}`
             );
     }
 };
@@ -346,8 +446,16 @@ const sheetsUpdate = async (
         permissionResponse.data.capabilities &&
         !permissionResponse.data.capabilities.canEdit
     ) {
-        return channel.send(
-            ":x: I do not have permission to edit the file you provided. If you want me to automatically update your sheet, please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`."
+        return safeSend(
+            channel,
+            ":x: I do not have permission to edit the file you provided. If you want me to automatically update your sheet, please give full editing permissions to `master@porygonthebot.iam.gserviceaccount.com`.",
+            `sheet permission warning in ${channel.name}`,
+            () =>
+                safeSend(
+                    author,
+                    ":x: I do not have permission to edit the file you provided. Please grant the bot's service account edit access to the sheet.",
+                    `sheet permission DM to ${author.id}`
+                )
         );
     }
 
@@ -355,8 +463,16 @@ const sheetsUpdate = async (
         .append(final as any)
         .catch((e) => {
             if (e.code === 400 && e.message.includes("Unable to parse range")) {
-                return channel.send(
-                    ":x: Please add a tab called `Raw Stats` to your sheet. That is where I will put the stats."
+                return safeSend(
+                    channel,
+                    ":x: Please add a tab called `Raw Stats` to your sheet. That is where I will put the stats.",
+                    `raw stats sheet warning in ${channel.name}`,
+                    () =>
+                        safeSend(
+                            author,
+                            ":x: Please add a tab called `Raw Stats` to your sheet. That is where I will put the stats.",
+                            `raw stats sheet DM to ${author.id}`
+                        )
                 );
             } else {
                 console.error(e);
@@ -368,22 +484,24 @@ const sheetsUpdate = async (
         league.system = "C";
         await discordUpdate(matchJson, channel, league, author);
     } else {
-        const botGuildMember = await channel.guild.members.fetch(
-            client.user?.id as string
-        );
-
-        if (
-            !channel.isDMBased() &&
-            !channel.permissionsFor(botGuildMember)?.has("ViewChannel") &&
-            !channel.permissionsFor(botGuildMember)?.has("SendMessages")
-        ) {
-            return await author.send(
-                `:x: I do not have permission to send messages in ${channel.name}.`
+        if (!client.user || !hasSendAccess(channel, client.user)) {
+            return await safeSend(
+                author,
+                `:x: I do not have permission to send messages in ${channel.name}.`,
+                `sheet update permission DM to ${author.id}`
             );
         }
 
-        return channel.send(
-            `Battle between \`${psPlayer1}\` and \`${psPlayer2}\` is complete and info has been updated!\n**Replay:** ${matchJson.info.replay}\n**History:** ${matchJson.info.history}`
+        return safeSend(
+            channel,
+            `Battle between \`${psPlayer1}\` and \`${psPlayer2}\` is complete and info has been updated!\n**Replay:** ${matchJson.info.replay}\n**History:** ${matchJson.info.history}`,
+            `sheet update confirmation in ${channel.name}`,
+            () =>
+                safeSend(
+                    author,
+                    `Battle between \`${psPlayer1}\` and \`${psPlayer2}\` is complete and info has been updated!\n**Replay:** ${matchJson.info.replay}\n**History:** ${matchJson.info.history}`,
+                    `sheet update confirmation DM to ${author.id}`
+                )
         );
     }
 };
@@ -442,7 +560,17 @@ const roleUpdate = async (
             }
 
             if (channelId && channel.guild) {
-                return channel.send(finalMessage);
+                return safeSend(
+                    channel,
+                    finalMessage,
+                    `role update in ${channel.name}`,
+                    () =>
+                        safeSend(
+                            author,
+                            finalMessage,
+                            `role update DM to ${author.id}`
+                        )
+                );
             }
         }
     });
@@ -506,8 +634,20 @@ const slashAnalyzeUpdate = async (
 const update = async (matchJson: Stats, channel: TextChannel, author: User) => {
     const league = await Prisma.getLeague(channel.id);
     let system = league?.system;
+    const errorMessage = matchJson.error;
 
-    if (matchJson.error) return await channel.send(matchJson.error);
+    if (errorMessage)
+        return await safeSend(
+            channel,
+            errorMessage,
+            `match error in ${channel.name}`,
+            () =>
+                safeSend(
+                    author,
+                    errorMessage,
+                    `match error DM to ${author.id}`
+                )
+        );
 
     if (league) {
         if (system === "S")
