@@ -43,6 +43,12 @@ const sockets: { [key: string]: Socket } = {
         ip: "sdpsserver.zapto.org:8000",
         server: "ws://sdpsserver.zapto.org/showdown/websocket",
     },
+    champsnatdex: {
+        name: "Champsnatdex",
+        link: "https://play.champsnatdex.dynv6.net/",
+        ip: "play.champsnatdex.dynv6.net:443",
+        server: "ws://play.champsnatdex.dynv6.net/showdown/websocket",
+    }
 };
 
 export default sockets;
